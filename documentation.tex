@@ -182,13 +182,16 @@ breaklines=true
 
 \newpage
 
+
 \section{Introduction}
 
-This technical documentation provides an overview of the \emph{Readersourcing 2.0} ecosystem. Initially, a recap of its general architeture is presented and subsequently, for each of its components, a brief recap of their role and purpose is presented along with some specific aspects, such as the technology used, the internal architecture, the structure of the database and more. This is done by using different types of diagrams belonging to the UML standard (unless otherwise specified) which are drew according to the set of style rules for that standard proposed by \citet{Fowler03}.
+This technical documentation provides an overview of the \emph{Readersourcing 2.0} ecosystem\footnote{\url{http://readersourcing.org}}, which has been originally presented by \citet{Soprano2019} during IRCDL 2019 conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}}
+
+Initially, a recap of its general architecture is presented and subsequently a brief description of the role and purpose of each of its components is presented along with some specific aspects such as the technology used, the internal architecture, the structure of the database and more. This is done by using different types of diagrams belonging to the UML standard (unless otherwise specified) which are drew according to the set of style rules for that standard proposed by \citet{Fowler03}.
 
 \section{General Architecture}
 
-Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed, there must be one application that acts as a server to gather all the ratings given by readers and one that acts as a client to allow readers to effectively rate publications. There is one additional component since the task of editing files encoded in PDF format is carried out by an ad hoc software library exploited by the server side application. An overview of the architecture of Readersourcing 2.0 is shown in Figure~\ref{fig:architecture} and in the following we briefly describe these three components. 
+Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed, there must be one (RS\_Server \cite{RS-Server}, presented in Section~\ref{rs-server}) which acts as a server to gather all the ratings given by readers and one that acts as a client (RS\_Rate \cite{RS-Rate}, presented in Section~\ref{rs-rate}) to allow the readers themselves to effectively rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. There is also an additional component (RS\_PDF \cite{RS-PDF}, presented in Section~\ref{rs-pdf}) since there is the task to annotate files in PDF format is carried out by an ad hoc software library exploited by the server-side application. An overview of the architecture of Readersourcing 2.0 is shown in Figure~\ref{fig:architecture} and in the following we briefly describe these three components. 
 
 \begin{figure}[h]
 \centering
@@ -199,17 +202,19 @@ Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed
 
 \section{RS\_Server}
 
-\emph{RS\_Server} is the server-side application which has the task to collect and aggregate the ratings given by readers and to use RSM and TRM to compute quality scores for readers and publications. RS\_Server must be deployed on a machine along with an instance of RS\_PDF, otherwise it can not work properly.
-Then, there are up to \emph{n} different browsers, with the corresponding end-users, which communicate with the server: each of them has an instance of \emph{RS\_Rate}, which is the true client. 
+\label{rs-server}
+
+RS\_Server \cite{RS-Server} is the server-side application which has the task to collect and aggregate the ratings given by readers and to use RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. RS\_Server must be deployed on a machine along with an instance of RS\_PDF, otherwise it can not work properly.
+Then, there are up to \emph{n} different browsers along with their end-users, which communicate with the server: each of them is characterized by an instance of \emph{RS\_Rate}. 
 Both RS\_PDF and RS\_Rate are described in the following. 
-This setup means that every interaction between readers and server is carried out through clients installed on readers' browsers and these clients have to handle the registration and authentication of readers, the rating action and the download action of link-annotated publications.
+
+This setup means that every interaction between readers and server can be carried out through clients installed on readers' browsers or by using the stand-alone web interface provided by RS\_Server and these clients have to handle the registration and authentication of readers, the rating action and the download action of link-annotated publications. 
 
 During the design phase of RS\_Server some strategies have been adopted to ensure its extensibility and generality. This means that: (i) it is straightforward to add new models, (ii) each model shares the same input data format, and (iii) if a model needs to save values locally to the RS\_Server (i.e., in its database), there is a standard procedure to allow that.
 
 \subsection{Implementation and Technology}
 
-RS\_Server is developed in Ruby on Rails,\footnote{\url{https://rubyonrails.org/}} which is a framework that
-The technology used to develop RS\_Server is an open-source web application framework called \emph{Ruby on Rails} (it is also called \emph{RoR} or \emph{Rails} only; more specifically, \emph{Rails} is the framework built above \emph{Ruby}, the actual programming language). It allows to build applications strongly based on the Model-View-Controller (MVC) architectural pattern.
+RS\_Server is developed in Ruby on Rails,\footnote{\url{https://rubyonrails.org/}} which is a framework that allows to build applications strongly based on the Model-View-Controller (MVC) architectural pattern. The technology used to develop RS\_Server is an open-source web application framework called \emph{Ruby on Rails} (it is also called \emph{RoR} or \emph{Rails} only; more specifically, \emph{Rails} is the framework built above \emph{Ruby}, the actual programming language). It allows to build applications strongly based on the Model-View-Controller (MVC) architectural pattern.
 
 The MVC pattern allows to separate the control logic of the program from data  presentation and business logic. Thefore, it allows to obtain an effective architecture since the first moments of its design phase. An intuitive representation of the structure that this pattern allows to obtain is shown in Figure \ref{fig:mvc}. This structure consists of three distinct entities, called \emph{Controller}, \emph{Model} and \emph{View}. These entities have the task of, respectively, managing control logic, encapsulating business logic and implementing data presentation.
 
@@ -265,18 +270,21 @@ To provide an example, a subset of the RESTFul interface of RS\_Server is shown 
 \begin{table}
 \centering
 \begin{threeparttable}
-\begin{tabular}{p{4cm}C{1.5cm}C{1.8cm}p{6cm}}
+\begin{tabular}{p{5.2cm}C{1.5cm}C{2cm}p{5cm}}
 \toprule
 \textbf{Endpoint}  &\textbf{HTTP Message} & \textbf{Operation} & \textbf{Description} \\
 \midrule
 /publications.json & GET & Index & Fetches the entire collection of Publications. \\
-/publications/1.json & GET & Show & Returns the Publication with identifier equal to 1. \\
+/publications/1.json & GET & Show & Returns the Publication with identifier equal to 1.\\
 /publications/lookup.json & POST & Lookup & Searches for a Publication; if it doesn't exists, it is fetched from the given URL. \\
 /publications/random.json & GET & Random & Returns a random Publication. \\ 
 /publications/1/is\_rated.json & GET & Is Rated & Checks if the Publication with identifier equal to 1 has been rated by at least one reader. \\
+/publications/1/is\_saved\_for\_later.json & GET & Is Saved For Later & Checks if the Publication with identifier equal to 1 has been saved for later by the current user. \\
 /publications.json & POST & Create & Creates a new Publication. \\
+/publications/is\_fetchable.json & POST & Is Fetchable & Checks if the provided URL contains a fetchable Publication. \\
+/publications/extract.json & POST & Extract & Extract the rating url from a link-annotated Publication. \\
 /publications/fetch.json & POST & Fetch & Fetches a Publication from the given URL. \\
-/publications/refresh.json & GET & Refresh & Fetches again an existing Publication. \\
+/publications/1/refresh.json & GET & Refresh & Fetches again the Publication with identifier equal to 1. \\
 /publications/1.json & PUT & Update & Updates the Publication with identifier equal to 1. \\
 /publications/1.json & DELETE & Delete & Deletes the Publication with identifier equal to 1.\\
 \dots & \dots & \dots & \dots \\
@@ -289,12 +297,12 @@ To provide an example, a subset of the RESTFul interface of RS\_Server is shown 
 
 \subsection{Database}
 
-To implement the storage of edited publications, user authentication and the other functionalities it is necessary to define the structure of a database, which is indeed shown in Figure \ref{fig:er}. There are three entities modeled within the application domain of Readersourcing 2.0:
+To implement the storage of link-annotated publications, user authentication and the other functionalities it is necessary to define a database schema, which is shown in Figure \ref{fig:er}. There are three main entities modeled within the application domain of Readersourcing 2.0:
 
 \begin{itemize}
-\item \textbf{Users}: models the users of the system itself, which are characterized by their personal data, an optional \emph{ORCID} a boolean used to check if the user wants to receive mail or not. There are also some attributes used to store various kind of tokens to allow operations like password reset;
-\item \textbf{Ratings}: models the ratings given by readers of publications which are characterized by a score;
-\item \textbf{Publications}: models the publications rated by their readers which are characterized by an optional \emph{DOI}, by various metadata and by a whole series of attributes used to manage the paths on the server filesystem in order to guarantee a correct storage of the original and edited files encoded in PDF format. 
+\item \textbf{Users}: models the users of the system itself, which are characterized by their personal data, an optional \emph{ORCID} and a boolean used to check if the user wants to receive emails or not. There are also some attributes used to store various kind of tokens to allow operations like password reset;
+\item \textbf{Ratings}: models the ratings given by readers of publications which are characterized by a numerical score. Also, there is a boolean to check if a rating is anonymous or not;
+\item \textbf{Publications}: models the publications rated by their readers which are characterized by an optional \emph{DOI}, by various metadata and by a whole series of attributes used to manage the paths on the server filesystem in order to guarantee the storage of the original and link-annotated files encoded in PDF format. 
 \end{itemize}
 Moreover, each of these entities is characterized by further attributes (\emph{steadiness}, \emph{informativeness}, \dots) which represent the scores/parameters computed by the Readersourcing models.
 
@@ -305,17 +313,13 @@ Moreover, each of these entities is characterized by further attributes (\emph{s
 \label{fig:er}
 \end{figure}
 
-In the schema shown in Figure \ref{fig:er} are also represented two relationships (\emph{gives} and \emph{related\_to}) that exist between these three entities. These relationships allow to \lq\lq tie together\rq\rq{} the entities to which they refer and they ensure compliance with the \emph{referential integrity} constraint.
+In the schema shown in Figure \ref{fig:er} are also represented two relationships (\emph{gives} and \emph{related\_to}) that exist between these three entities. These relationships allow to \lq\lq tie together\rq\rq{} the entities to which they refer and to ensure compliance with the \emph{referential integrity} constraint.
 
-In particular, the \emph{gives} relation establishes that a user can give $[0,\dots ,n]$ different ratings, while a single rating can be expressed at most by a user. At first glance, the multiplicity equal to $0$ described by the schema shown in Figure \ref{fig:er} regarding users may seem strange. The meaning of this constraint is to allow the expression of anonymous ratings. Likewise, the relation \emph{related\_to} establishes that a rating is relative to a certain  publication, while a publication can be characterized by $[1,\dots ,n]$ different ratings. Moreover, this structure allows to comply in a \lq\lq natural\rq\rq{} way with other constraints, such as the fact that if at least at least one publication does not exist, no ratings have to exist.
+In particular, the \emph{gives} relation establishes that a user can give $[0,\dots ,n]$ different ratings, while a single rating can be expressed at most by a user. At first glance, the multiplicity equal to $0$ shown in Figure \ref{fig:er} regarding users may look strange. The meaning of this constraint is to allow the expression of anonymous ratings. Likewise, the relation \emph{related\_to} establishes that a rating is relative to a certain  publication, while a publication can be characterized by $[1,\dots ,n]$ different ratings. Moreover, this structure allows to comply in a \lq\lq natural\rq\rq{} way with other constraints, such as the fact that if at least at least one publication does not exist, no ratings have to exist.
 
 \subsection{Class Diagram}
 
-Figure \ref{fig:class-1} shows a diagram of the main classes of RS\_Server. As one can see, the convention for which there is an MVC triple for each of the entities modeled in the application domain is followed, althought Views are not shown in the diagram because in this case they are just methods. The Controller methods represent actions that a user can perform on individual entities or on collections of them, thus mapping the endpoints of the communication protocol used in order to allow the communication between RS\_Server and the instances of RS\_Rate. As for the Models, their attributes represent the characteristics of the reference entity, while their methods encapsulate the business logic.
-
-Furthermore, there are two additional Controllers\footnote{\emph{Application Controller} and \emph{AuthenticationController}} responsible for managing user authentication. RS\_Server, as specified previously, is a Web Service; this means that the user interface is presented directly on the instances of RS\_Rate and, therefore, those instances send messages to which RS\_Server responds once the necessary processing has been completed, according to the RESTful communication paradigm. Because of this design choice, it is not possible to use the \lq\lq classic\rq\rq{} server-side approach to user authentication according to which some information relative to the logged user are saved in the session data, since RESTful paradigm is \emph{stateless}. To be able to authenticate himself, therefore, the user client must attach to each request a \emph{token} that identifies its user as valid within the system. Therefore, a \emph{token-based} authentication approach has been implemented.
-
-When a user performs the first request to RS\_Server since some time, he must fill in the login form. If these inserted credentials exist in the database they are encrypted (a \emph{payload} is obtained) and used together with a unique \emph{signature} to create an alphanumeric JSON string, i.e. the actual token, a copy of which is saved inside the database. This token thus generated is sent to the RS\_Rate instance of the user itself which stores it in a secure cookie characterized by an expiration date after which the procedure must be repeated. At each subsequent request to RS\_Sever, the instance of RS\_Rate attaches\footnote{In the \emph{Authorization} header of the HTTP package} the previously obtained token in order to demonstrate that its user has successfully completed the authentication procedure. As for RS\_Server, if a token is present it is extracted and decoded and if it corresponds to one of those saved in the database, then the user identified by the payload is authorized to proceed. An intuitive scheme of the process procedure is shown in Figure \ref{fig:auth}.
+Figure \ref{fig:class-1} shows a diagram of the main classes of RS\_Server. As one can see, the convention for which there is an MVC triple for each of the entities modeled in the application domain is followed, althought Views are not shown in the diagram because in this case they are just simple methods. The Controller methods represent actions that a user can perform on individual entities or on collections of them, thus mapping the endpoints of the communication protocol used in order to allow the communication between RS\_Server and the instances of RS\_Rate. As for the Models, their attributes represent the characteristics of the reference entity, while their methods encapsulate the business logic.
 
 \begin{figure}[!tbp]
 \centering
@@ -324,6 +328,10 @@ When a user performs the first request to RS\_Server since some time, he must fi
 \label{fig:class-1}
 \end{figure}
 
+Furthermore, there are two additional Controllers\footnote{\emph{Application Controller} and \emph{AuthenticationController}.} responsible for managing user authentication. RS\_Server, as specified previously, is a Web Service; this means that the user interface is presented directly on the instances of RS\_Rate and, therefore, those instances send messages to which RS\_Server responds once the necessary processing has been completed, according to the RESTful communication paradigm. Because of this design choice, it is not possible to use the \lq\lq classic\rq\rq{} server-side approach to user authentication according to which some information relative to the logged user are saved in the session data, since RESTful paradigm is \emph{stateless}. To be able to authenticate himself, therefore, the user client must attach to each request a \emph{token} that identifies its user as valid within the system. Therefore, a \emph{token-based} authentication approach has been implemented.
+
+When a user performs the first request to RS\_Server since some time, he must fill in the login form. If these inserted credentials exist in the database they are encrypted (a \emph{payload} is obtained) and used together with a unique \emph{signature} to create an alphanumeric JSON string, i.e. the actual token, a copy of which is saved inside the database. This token thus generated is sent to the RS\_Rate instance of the user itself which stores it in a secure cookie characterized by an expiration date after which the procedure must be repeated. At each subsequent request to RS\_Server, the instance of RS\_Rate attaches\footnote{In the \emph{Authorization} header of the HTTP payload.} the previously obtained token in order to demonstrate that its user has successfully completed the authentication procedure. As for RS\_Server, if a token is present it is extracted and decoded and if it corresponds to one of those saved in the database, then the user identified by the payload is authorized to proceed. An intuitive scheme of the process procedure is shown in Figure \ref{fig:auth}.
+
 \begin{figure}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/autenticazione.png}
@@ -331,17 +339,17 @@ When a user performs the first request to RS\_Server since some time, he must fi
 \label{fig:auth}
 \end{figure}
 
-Finally, there is an additional set of classes which are used for different purposes than representing MVC triples for the entitities of the application domain. In particular, they are exploited internally by the model containing the business logic to manage the given ratings and have the task of implementing the Readersourcing models. The structure of these classes follows a design pattern called\footnote{\emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{SMStrategy} e \emph{TrueReviewStrategy}. } \emph{Strategy} because this pattern allows to integrate new models at a later time without having to make radical changes in the structure of RS\_Server.
+Finally, there is an additional set of classes which are used for different purposes than representing MVC triples for the entitities of the application domain. In particular, they are exploited internally by the model containing the business logic to manage the given ratings and have the task of implementing the Readersourcing models. The structure of these classes follows a design pattern called\footnote{\emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RSMStrategy} e \emph{TRMStrategy}.} \emph{Strategy} because this pattern allows to integrate new models at a later time without having to make radical changes in the structure of RS\_Server.
 
 \subsection{Deploy}
 
-There are three main modalities that can be exploited to deploy a working instance of RS\_Server in \emph{development} or \emph{production} environment. The former environment must be used if there is the need to add custom Readersourcing model, to extend/modify the current implementation of RS\_Server or simply to test it in a safe way and it is allowed only by deploy modalities 1 and 2, while the latter must be used if RS\_Server is about to be used in production as it is and it is allowed by every deploy modality. In the following these three deploy modalities are described, along with their requirements. It is strongly suggested to read also the section dedicated to the \emph{environment variables}, since if they are not set RS\_Server will not work properly.
+There are three main modalities that can be exploited to deploy a working instance of RS\_Server in \emph{development} or \emph{production} environment. The former environment must be used if there is the need to add custom Readersourcing model, to extend/modify the current implementation of RS\_Server or simply to test it in a safe way and it is allowed only by deploy modalities 1 and 2, while the latter must be used if RS\_Server is about to be made available for everyone as it is and it is allowed by every deploy modality. In the following these three deploy modalities are described, along with their requirements. It is strongly suggested to read also the sections dedicated to the \emph{environment variables} (\ref{env-1} and \ref{env-2}), since if they are not set RS\_Server will not work properly.
 
 \subsubsection{1: Manual Way}
 
 \label{deploy1}
 
-This deploy modality allows to manually downwload and start RS\_Server locally to a machine chosen as a server. This is the most demading modality regarding is requirements since it assumes that you have a full and working installation of \emph{Ruby}, \emph{JRE} (Java Runtime Environment) and \emph{PostgreSQL} and everything must be set up manually, but it allows more flexibility if a particular setup is required for any reason. 
+This deploy modality allows to manually downwload and start RS\_Server locally to a machine chosen as a server. This is the most demanding modality regarding is requirements since it assumes that you have a full and working installation of \emph{Ruby}, \emph{JRE} (Java Runtime Environment) and \emph{PostgreSQL} and everything must be set up manually, but it allows more flexibility if a particular setup is required for any reason. 
 
 \subsubsubsection{Requirements}
 
@@ -480,6 +488,8 @@ Regardless of the chosen deploy modality, there is the need to set some environm
 
 \subsubsubsection{\texttt{.env} file}
 
+\label{env-1}
+
 To set an environment variable in a local \verb|.env| file, create it inside the main directory of RS\_Server and populate it in a \verb|key=value| fashion; Listing \ref{env-file} shows the content of a valid \verb|.env| file.
 
 \begin{algorithm}[h]
@@ -496,12 +506,15 @@ To set an environment variable in a local \verb|.env| file, create it inside the
 
 \subsubsubsection{Heroku App}
 
-To set an environment variable in an Heroku app, simply follow the guide provided by the platform.\footnote{\url{https://devcenter.heroku.com/articles/config-vars}} In Heroku terminology environment variables are called \emph{config vars}.
+\label{env-2}
 
+To set an environment variable in an Heroku app, simply follow the guide provided by the platform.\footnote{\url{https://devcenter.heroku.com/articles/config-vars}} In Heroku terminology environment variables are called \emph{config vars}.
 
 \section{RS\_PDF}
 
-\emph{RS\_PDF} is the software library which is exploited by RS\_Server to actually edit the PDF files to add the URL required when a reader requests to save for later the publication that he is reading. 
+\label{rs-pdf}
+
+RS\_PDF \cite{RS-PDF} is the software library which is exploited by RS\_Server to actually edit the PDF files to add the URL required when a reader requests to save for later the publication that he is reading. 
 It is a software characterized by a command line interface and this means that RS\_Server can use it directly since they are deployed one along the other, without using complex communication channels and paradigms.    
 
 \subsection{Implementation and Technology}
@@ -525,9 +538,9 @@ Figure \ref{fig:package} shows a diagram of the packages in which RS\_PDF is div
 
 In particular, the interaction with RS\_Server takes place within the package \textbf{program}. The server-side component itself can use the functionalities of RS\_PDF by executing it on the JVM, with a special set of command line options. Within this package, therefore, the parsing of the values received for each of these options and the management of the execution flow on the basis of these values take place.
 
-The package \textbf{utils} has the task of providing useful tools to the remaining components of RS\_Rate. Inside it there are shared constants and methods that allow to access to the logging functionality. As it can be seen by looking at the diagram shown in Figure \ref{fig:package}, the other packages depend on it, in particular for some of the values of its constants.
+The package \textbf{utils} has the task of providing useful tools to the remaining components of RS\_PDF. Inside it there are shared constants and methods that allow to access to the logging functionality. As it can be seen by looking at the diagram shown in Figure \ref{fig:package}, the other packages depend on it, in particular for some of the values of its constants.
 
-The package \textbf{publications} contains the business logic to handle files encoded in PDF format that must be edited. Its classes follow the logic of the MVC pattern, although its exploiting is not bound by the used technology as in the case of an application developed with Rails. There is, therefore, a Controller which takes into account the execution parameters analyzed in the package \textbf{program} and updates the internal state of one or more instances of the Model which will be as many as the files encoded in PDF format that must be edited. This operation involves loading the input files and adding a link to RS\_Server on a new page, taking advantage of the functionalities of \emph{PDFBox}. As a last note, a View is not necessary because RS\_PDF simply saves the changes in a new PDF file and, then, ends its execution.
+The package \textbf{publications} contains the business logic to handle files encoded in PDF format that must be edited. Its classes follow the logic of the MVC pattern, although its exploiting is not bound by the used technology as in the case of an application developed with Rails. There is, therefore, a Controller which takes into account the execution parameters analyzed in the package \textbf{program} and updates the internal state of one or more instances of the Model which will be as many as the files encoded in PDF format that must be annotated. This operation involves loading the input files and adding a link to RS\_Server on a new page, taking advantage of the functionalities of \emph{PDFBox}. As a last note, a View is not necessary because RS\_PDF simply stores the changes in a new PDF file and, then, ends its execution.
 
 \subsection{Class Diagram}
 
@@ -544,7 +557,7 @@ A single exception to this structure is the use of the \emph{Parameters} class; 
 
 \subsection{Installation}
 
-RS\_PDF comes bundled with RS\_Server, so when the latter is deployed there is no need to manually install the former. Nevertheless, it is possible to use it independently; it is sufficient to download the attached \verb|.jar| files from the release section of its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_PDF}} and place it somewhere on the filesystem.
+RS\_PDF comes bundled with RS\_Server, so when the latter is deployed there is no need to manually install the former. Nevertheless, it is possible to use it independently; it is sufficient to download the published \verb|.jar| files from the release section of its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_PDF}} and place it somewhere on the filesystem.
 
 \subsubsection{Requirements}
 
@@ -590,7 +603,9 @@ java -jar C:\lib\RS_PDF-v1.0-alpha.jar -pIn C:\data -pOut C:\out -a eyJhbGciOiJI
 
 \section{RS\_Rate}
 
-\emph{RS\_Rate} is an extension for \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} and the client that readers actually use to rate publications; this means that every interaction with RS\_Server is carried out through this client. We intend to generalize RS\_Rate by providing an implementation for each of the major browsers (i.e., Firefox, Safari, \dots)
+\label{rs-rate}
+
+RS\_Rate \cite{RS-Rate} is an extension for \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} and it is a client that readers can use to rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. We intend to generalize RS\_Rate by providing an implementation for each of the major browsers (i.e., Firefox, Safari, \dots).
 
 \subsection{Implementation and Technology}
 
@@ -603,7 +618,7 @@ As for the Javascript component, RS\_Rate does not actually uses the \lq\lq pure
 RS\_Rate is freely available on the main browsers webstores. To use it, simply take advantage of the following links and install the version for your favourite browser.
 \begin{itemize}
 \item \textbf{Google Chrome} version available at: \url{https://chrome.google.com/webstore/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg?hl=it};
-\item \textbf{Firefox} version available at: \emph{currently disabled, will be available soon}.
+\item \textbf{Firefox} version available at: \emph{currently disabled, will be available at a later time}.
 \end{itemize}
 
 \newpage
