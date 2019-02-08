@@ -1,6 +1,10 @@
-# Readersourcing 2.0: Technical Documentation
+<h1>Info</h1>
 
-Tecnhical documentation for the Readersourcing 2.0 ecosystem.
+This is the official repository of the **technical documentation** of the **Readersourcing 2.0** ecosystem. This repository is a <a href="https://git-scm.com/book/it/v2/Git-Tools-Submodules">Git Submodule</a> of the main project which can be found by taking advantage of the links below. 
+
+<h1>Description<h1>
+
+**Tecnhical documentation** which describes the Readersourcing 2.0 ecosystem and each of its components.
 
 <h1>Read this!</h1>
 
@@ -8,11 +12,11 @@ Please, note that this is an early alpha release and it is not ready for the use
 
 <h1>Useful Links</h1>
 
+- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">Readersourcing 2.0 (Main Repository)</a>
+- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Server">RS_Server (Submodule)</a>
+- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_PDF">RS_PDF (Submodule)</a>
+- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">RS_Rate (Submodule)</a>
 - <a href="https://zenodo.org/record/1446468">Original Article</a>
 - <a href="https://zenodo.org/record/1452397">Technical Documentation (Zenodo)</a>
 - This Repository: Technical Documentation (GitHub)
-- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Server">RS_Server</a>
-- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_PDF">RS_PDF</a>
-- <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">RS_Rate</a>
-
 
