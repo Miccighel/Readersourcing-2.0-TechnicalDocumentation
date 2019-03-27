@@ -185,7 +185,8 @@ breaklines=true
 
 \section{Introduction}
 
-This technical documentation provides an overview of the \emph{Readersourcing 2.0} ecosystem\footnote{\url{http://readersourcing.org}}, which has been originally presented by \citet{Soprano2019} during IRCDL 2019 conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}}
+
+has been recently presented presented by \citet{Soprano2019} during the IRCDL 2019 Conference\footnote{\url{https://ircdl2019.isti.cnr.it/}}. The original paper can be found on Zenodo\footnote{\url{https://zenodo.org/record/1446468}}, while the code and the related documentation is available on GitHub\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}. Take advantage of the badges below to exploit these resources.
 
 Initially, a recap of its general architecture is presented and subsequently a brief description of the role and purpose of each of its components is presented along with some specific aspects such as the technology used, the internal architecture, the structure of the database and more. This is done by using different types of diagrams belonging to the UML standard (unless otherwise specified) which are drew according to the set of style rules for that standard proposed by \citet{Fowler03}.
 
@@ -275,6 +276,7 @@ To provide an example, a subset of the RESTFul interface of RS\_Server is shown 
 \textbf{Endpoint}  &\textbf{HTTP Message} & \textbf{Operation} & \textbf{Description} \\
 \midrule
 /publications.json & GET & Index & Fetches the entire collection of Publications. \\
+/publications/list & GET & List & Fetches the entire collection of Publications (server-side view). \\
 /publications/1.json & GET & Show & Returns the Publication with identifier equal to 1.\\
 /publications/lookup.json & POST & Lookup & Searches for a Publication; if it doesn't exists, it is fetched from the given URL. \\
 /publications/random.json & GET & Random & Returns a random Publication. \\ 
@@ -301,7 +303,7 @@ To implement the storage of link-annotated publications, user authentication and
 
 \begin{itemize}
 \item \textbf{Users}: models the users of the system itself, which are characterized by their personal data, an optional \emph{ORCID} and a boolean used to check if the user wants to receive emails or not. There are also some attributes used to store various kind of tokens to allow operations like password reset;
-\item \textbf{Ratings}: models the ratings given by readers of publications which are characterized by a numerical score. Also, there is a boolean to check if a rating is anonymous or not;
+\item \textbf{Ratings}: models the ratings given by readers of publications which are characterized by a numerical score. Also, there is a boolean to check if a rating is anonymous or not and another one to check if it has been edited at a later time;
 \item \textbf{Publications}: models the publications rated by their readers which are characterized by an optional \emph{DOI}, by various metadata and by a whole series of attributes used to manage the paths on the server filesystem in order to guarantee the storage of the original and link-annotated files encoded in PDF format. 
 \end{itemize}
 Moreover, each of these entities is characterized by further attributes (\emph{steadiness}, \emph{informativeness}, \dots) which represent the scores/parameters computed by the Readersourcing models.
@@ -330,7 +332,7 @@ Figure \ref{fig:class-1} shows a diagram of the main classes of RS\_Server. As o
 
 Furthermore, there are two additional Controllers\footnote{\emph{Application Controller} and \emph{AuthenticationController}.} responsible for managing user authentication. RS\_Server, as specified previously, is a Web Service; this means that the user interface is presented directly on the instances of RS\_Rate and, therefore, those instances send messages to which RS\_Server responds once the necessary processing has been completed, according to the RESTful communication paradigm. Because of this design choice, it is not possible to use the \lq\lq classic\rq\rq{} server-side approach to user authentication according to which some information relative to the logged user are saved in the session data, since RESTful paradigm is \emph{stateless}. To be able to authenticate himself, therefore, the user client must attach to each request a \emph{token} that identifies its user as valid within the system. Therefore, a \emph{token-based} authentication approach has been implemented.
 
-When a user performs the first request to RS\_Server since some time, he must fill in the login form. If these inserted credentials exist in the database they are encrypted (a \emph{payload} is obtained) and used together with a unique \emph{signature} to create an alphanumeric JSON string, i.e. the actual token, a copy of which is saved inside the database. This token thus generated is sent to the RS\_Rate instance of the user itself which stores it in a secure cookie characterized by an expiration date after which the procedure must be repeated. At each subsequent request to RS\_Server, the instance of RS\_Rate attaches\footnote{In the \emph{Authorization} header of the HTTP payload.} the previously obtained token in order to demonstrate that its user has successfully completed the authentication procedure. As for RS\_Server, if a token is present it is extracted and decoded and if it corresponds to one of those saved in the database, then the user identified by the payload is authorized to proceed. An intuitive scheme of the process procedure is shown in Figure \ref{fig:auth}.
+When a user performs the first request to RS\_Server since some time, he must fill in the login form. If these inserted credentials exist in the database they are encrypted (a \emph{payload} is obtained) and used together with a unique \emph{signature} to create an alphanumeric JSON string, i.e. the actual token. This token thus generated is sent to the RS\_Rate instance of the user itself which stores it in a secure cookie characterized by an expiration date after which the procedure must be repeated. At each subsequent request to RS\_Server, the instance of RS\_Rate attaches\footnote{In the \emph{Authorization} header of the HTTP payload.} the previously obtained token in order to demonstrate that its user has successfully completed the authentication procedure. As for RS\_Server, if a token is present it is extracted and decoded and if it corresponds to one of those saved in the database, then the user identified by the payload is authorized to proceed. An intuitive scheme of the process procedure is shown in Figure \ref{fig:auth}.
 
 \begin{figure}[!tbp]
 \centering
@@ -354,9 +356,9 @@ This deploy modality allows to manually downwload and start RS\_Server locally t
 \subsubsubsection{Requirements}
 
 \begin{itemize}
-\item Ruby $>=$ 2.4.4;
+\item Ruby $>=$ 2.5.3;
 \item JRE (Java Runtime Environment) $>=$ 1.8.0;
-\item PostgreSQL $>=$ 10.5.
+\item PostgreSQL $>=$ 11.0.
 \end{itemize}
 
 \subsubsubsection{How To}
@@ -476,8 +478,7 @@ Regardless of the chosen deploy modality, there is the need to set some environm
 \verb|SENDGRID_PASSWORD| & Password of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|SENDGRID_API_KEY| & API key of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|SENDGRID_DOMAIN| & A domain registered within your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|RECAPTCHA_SECRET_KEY)| & Private key used by Google ReCAPTCHA v2 within a registered domain & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|RECAPTCHA_SITE_KEY)| & API key of your Google ReCAPTCHA v2 account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
+\verb|BUG_REPORT_MAIL| & An email address to receive bug reports & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|RAILS_LOG_TO_STD| & If set to \verb|true|, Rails writes its logs to the standard output. Useful for debugging purposes. & 3 & production & \verb|.env| file, Heroku App \\
 \bottomrule
 \end{tabular}
@@ -501,6 +502,7 @@ To set an environment variable in a local \verb|.env| file, create it inside the
 \State$\text{SENDGRID\_PASSWORD=your\_sendgrid\_password}$
 \State$\text{SENDGRID\_DOMAIN=your\_sendgrid\_domain}$
 \State$\text{SENDGRID\_API\_KEY=your\_sendgrid\_secret\_api\_key}$
+\State$\text{BUG\_REPORT\_MAIL=your\_bug\_report\_mail}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -605,7 +607,7 @@ java -jar C:\lib\RS_PDF-v1.0-alpha.jar -pIn C:\data -pOut C:\out -a eyJhbGciOiJI
 
 \label{rs-rate}
 
-RS\_Rate \cite{RS-Rate} is an extension for \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} and it is a client that readers can use to rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. We intend to generalize RS\_Rate by providing an implementation for each of the major browsers (i.e., Firefox, Safari, \dots).
+RS\_Rate \cite{RS-Rate} is an extension for \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} available on its store. It is a client for Readersourcing 2.0 that can be used by readers of publications to rate them directly from the browser without the need of using this web interface. We intend to generalize RS\_Rate by providing an implementation for each of the major browsers (i.e., Firefox, Safari, \dots).
 
 \subsection{Implementation and Technology}
 
