@@ -205,9 +205,8 @@ Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed
 
 \label{rs-server}
 
-RS\_Server \cite{RS-Server} is the server-side application which has the task to collect and aggregate the ratings given by readers and to use RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. RS\_Server must be deployed on a machine along with an instance of RS\_PDF, otherwise it can not work properly.
-Then, there are up to \emph{n} different browsers along with their end-users, which communicate with the server: each of them is characterized by an instance of \emph{RS\_Rate}. 
-Both RS\_PDF and RS\_Rate are described in the following. 
+RS\_Server \cite{RS-Server} is the server-side application which has the task to collect and aggregate the ratings given by readers and to use RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. An instance of RS\_Server is deployed along one of RS\_PDF.
+Then, there are up to \emph{n} different browsers along with their end-users, which communicate with the server: each of them is characterized by an instance of \emph{RS\_Rate}. Both RS\_PDF and RS\_Rate are described in the following. 
 
 This setup means that every interaction between readers and server can be carried out through clients installed on readers' browsers or by using the stand-alone web interface provided by RS\_Server and these clients have to handle the registration and authentication of readers, the rating action and the download action of link-annotated publications. 
 
@@ -315,7 +314,7 @@ Moreover, each of these entities is characterized by further attributes (\emph{s
 \label{fig:er}
 \end{figure}
 
-In the schema shown in Figure \ref{fig:er} are also represented two relationships (\emph{gives} and \emph{related\_to}) that exist between these three entities. These relationships allow to \lq\lq tie together\rq\rq{} the entities to which they refer and to ensure compliance with the \emph{referential integrity} constraint.
+Figure \ref{fig:er} shows also two relationships (\emph{gives} and \emph{related\_to}) which exist between these three entities. These relationships allow to \lq\lq tie together\rq\rq{} the entities to which they refer and to ensure compliance with the \emph{referential integrity} constraint.
 
 In particular, the \emph{gives} relation establishes that a user can give $[0,\dots ,n]$ different ratings, while a single rating can be expressed at most by a user. At first glance, the multiplicity equal to $0$ shown in Figure \ref{fig:er} regarding users may look strange. The meaning of this constraint is to allow the expression of anonymous ratings. Likewise, the relation \emph{related\_to} establishes that a rating is relative to a certain  publication, while a publication can be characterized by $[1,\dots ,n]$ different ratings. Moreover, this structure allows to comply in a \lq\lq natural\rq\rq{} way with other constraints, such as the fact that if at least at least one publication does not exist, no ratings have to exist.
 
@@ -458,7 +457,7 @@ Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readerso
 \item \verb|heroku container:release web --app your-app-name|;
 \item \verb|heroku open --app your-app-name| (optional);
 \item \verb|heroku run rake db:create --app your-app-name| (optional);
-\item \verb|heroku run rake db:migrate --app your-app-name|.
+\item \verb|heroku run rake db:migrate --app your-app-name| (optional).
 \end{itemize}
 
 \subsubsection{Environment Variables}
