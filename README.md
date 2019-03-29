@@ -12,6 +12,7 @@ Please, note that this is an early alpha release and it is not ready for the use
 
 <h1>Useful Links</h1>
 
+- <a href="https://readersourcing.org">Readersourcing 2.0 (Web Interface)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">Readersourcing 2.0 (Main Repository)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Server">RS_Server (Submodule)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_PDF">RS_PDF (Submodule)</a>
