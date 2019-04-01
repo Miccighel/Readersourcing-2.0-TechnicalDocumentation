@@ -364,7 +364,7 @@ This deploy modality allows to manually downwload and start RS\_Server locally t
 
 Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside its main directory using a command line prompt (with an \verb|ls| or \verb|dir| command you should see \verb|app|, \verb|bin|, \verb|config|, etc. folders) and type \verb|gem install bundler|. This gem (dependency) will provides a consistent environment for Ruby projects (like RS\_Server) by tracking and installing the exact gems (dependencies) and versions that are needed. 
 
-To fetch all those required by RS\_Server type \verb|bundle install| and wait for the process to complete. The next two commands are required \emph{only before the first startup of RS\_Server} because they will create and set up the database, so please be sure that the PostgreSQL service is started up and ready to accept connections on port 5432. Type \verb|rake db:create| to create the database and \verb|rake db:migrate| to create the required tables inside it. After these commands, everything is ready to launch RS\_Server in development or production mode. To do that, just type \verb|cd bin| to move inside \verb|bin| directory and then \verb|rails server -b 127.0.0.1 -p 3000 -e development| with the proper values for \verb|-b|, \verb|-p| and \verb|-e| options. If the previous values are used, RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|development| environment. Every request, therefore, must be sent to \url{https://127.0.0.1:3000} address.
+To fetch all those required by RS\_Server type \verb|bundle install| and wait for the process to complete. The next two commands are required \emph{only before the first startup of RS\_Server} because they will create and set up the database, so please be sure that the PostgreSQL service is started up and ready to accept connections on port 5432. Type \verb|rake db:create| to create the database and \verb|rake db:migrate| to create the required tables inside it. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, everything is ready to launch RS\_Server in development or production mode. To do that, just type \verb|cd bin| to move inside \verb|bin| directory and then \verb|rails server -b 127.0.0.1 -p 3000 -e development| with the proper values for \verb|-b|, \verb|-p| and \verb|-e| options. If the previous values are used, RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|development| environment. Every request, therefore, must be sent to \url{https://127.0.0.1:3000} address.
 
 \subsubsubsection{Quick Cheatsheet}
 
@@ -374,13 +374,14 @@ To fetch all those required by RS\_Server type \verb|bundle install| and wait fo
 \item \verb|bundle install|;
 \item \verb|rake db:create| (only before first startup);
 \item \verb|rake db:migrate| (only before first startup);
+\item create \verb|.env| file and set environment variables;
 \item \verb|cd bin|;
 \item \verb|rails server -b x.x.x.x -p x -e development| or\\ \verb|rails server -b x.x.x.x -p x -e production|.
 \end{enumerate}
 
 \subsubsection{2: Manual Way (But Faster)}
 
-This deploy modality allows to downwload and start RS\_Server locally to a machine chosen as a server similarly to the modality described in section \ref{deploy1}, but in a way which is faster and less frustrating, despite being less flexible. Moreover, this deploy modality has less demanding requirements, since only a working installation of \emph{Docker Desktop CE (Community Edition)} is required.
+This deploy modality allows to download and start RS\_Server locally to a machine chosen as a server similarly to the modality described in section \ref{deploy1}, but in a way which is faster and less frustrating, despite being less flexible. Moreover, this deploy modality has less demanding requirements, since only a working installation of \emph{Docker Desktop CE (Community Edition)} is required.
 
 Docker is a project which allows to automate the deployment phase by distributing an \emph{image} of an application inside a \emph{container}. A container is a standard unit of software that packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another. A Docker container image is a lightweight, standalone, executable package of software that includes everything needed to run an application: code, runtime, system tools, system libraries and settings. This means that there is no need to manually install the runtimes/libraries/dependencies needed to run an application since the Docker Engine will automatically fetch, install and setup them.
 
@@ -404,7 +405,7 @@ and
 \begin{verbatim}
 ----------- END OF SCENARIO 1: DEPLOY WITH REMOTE IMAGES ----------
 \end{verbatim} 
-comments and comment back the remaining lines of code. Next, from the command line prompt type \verb|docker-compose up| and wait for the processing to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be started up. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Every request, therefore, must be sent to \verb|https://127.0.0.1:3000| address. As it can be seem, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
+comments and comment back the remaining lines of code. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, from the command line prompt type \verb|docker-compose up| and wait for the processing to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be started up. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Every request, therefore, must be sent to \verb|https://127.0.0.1:3000| address. As it can be seem, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
 
 \paragraph{Scenario 2: Deploy With Local Build}
 
@@ -416,12 +417,13 @@ and
 \begin{verbatim}
 ----------- END OF SCENARIO 2: DEPLOY WITH LOCAL BUILD -----------
 \end{verbatim} 
-comments and comment back the remaining lines of code. Now, from the command line prompt type \verb|docker-compose up| and wait for the process to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be ready. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Therefore, every request must be sent to \verb|https://127.0.0.1:3000| address. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
+comments and comment back the remaining lines of code. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, from the command line prompt type \verb|docker-compose up| and wait for the process to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be ready. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Therefore, every request must be sent to \verb|https://127.0.0.1:3000| address. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
 
 \paragraph{Quick Cheatsheet}
 
 \begin{itemize}
 \item \verb|cd| to main directory;
+\item create \verb|.env| file and set environment variables;
 \item \verb|docker-compose up|;
 \item \verb|docker-compose run rake db:create| (only at first startup);
 \item \verb|docker-compose run rake db:migrate| (only at first startup);
@@ -445,7 +447,7 @@ Heroku is Platform-as-a-Service (PaaS) that enables developers to build, run, an
 
 \subsubsubsection{How To}
 
-Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside the main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|; you should see a \verb|Dockerfile|. If you do not see it, please be sure to be in the main directory of the cloned repository. Before proceeding, \emph{be sure that your Docker Engine has been started up, otherwise the following commands will not work}. Log in to your Heroku account by typing \verb|heroku login| and insert your credentials. Next, log in to Heroku container registry by typing \verb|heroku container:login|. To build and upload your instance of RS\_Server type \verb|heroku container:push web --app your-app-name| and when the process terminates type \verb|heroku container:release web| to make it publicy accessible. Optionally, you can type \verb|heroku open| to open the browser and be redirected on the homepage of  \verb|your_app_name| application. To create and set up the database type \verb|heroku run rake db:create| and \verb|heroku run rake db:migrate|. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since Heroku (through the Docker Engine) will take care of that.
+Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside the main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|; you should see a \verb|Dockerfile|. If you do not see it, please be sure to be in the main directory of the cloned repository. Before proceeding, \emph{be sure that your Docker Engine has been started up, otherwise the following commands will not work}. Log in to your Heroku account by typing \verb|heroku login| and insert your credentials. Next, log in to Heroku container registry by typing \verb|heroku container:login|. To build and upload your instance of RS\_Server type \verb|heroku container:push web --app your-app-name| and when the process terminates type \verb|heroku container:release web| to make it publicy accessible. Optionally, you can type \verb|heroku open| to open the browser and be redirected on the homepage of  \verb|your_app_name| application. To create and set up the database type \verb|heroku run rake db:create| and \verb|heroku run rake db:migrate|. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since Heroku (through the Docker Engine) will take care of that. Now, remember to set the required environment variables on your Heroku app as explained in section \ref{env-2}.
 
 \subsubsubsection{Quick Cheatsheet}
 
@@ -457,7 +459,8 @@ Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readerso
 \item \verb|heroku container:release web --app your-app-name|;
 \item \verb|heroku open --app your-app-name| (optional);
 \item \verb|heroku run rake db:create --app your-app-name| (optional);
-\item \verb|heroku run rake db:migrate --app your-app-name| (optional).
+\item \verb|heroku run rake db:migrate --app your-app-name| (optional);
+\item set environment variables on your Heroku app.
 \end{itemize}
 
 \subsubsection{Environment Variables}
