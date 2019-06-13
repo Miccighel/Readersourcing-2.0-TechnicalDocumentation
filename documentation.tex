@@ -163,7 +163,7 @@ breaklines=true
 
 % INFORMAZIONI GENERALI
 
-\titolo{Readersourcing 2.0\\Technical Documentation}
+\titolo{Readersourcing 2.0:\\ Documentation}
 \nomeprogetto{MICHAEL SOPRANO AND STEFANO MIZZARO}
 
 \begin{document}
@@ -186,13 +186,13 @@ breaklines=true
 \section{Introduction}
 
 
-has been recently presented presented by \citet{Soprano2019} during the IRCDL 2019 Conference\footnote{\url{https://ircdl2019.isti.cnr.it/}}. The original paper can be found on Zenodo\footnote{\url{https://zenodo.org/record/1446468}}, while the code and the related documentation is available on GitHub\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}. Take advantage of the badges below to exploit these resources.
+The Readersourcing 2.0 ecosystem has been built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and University of Udine\footnote{\url{https://www.uniud.it/}}. It has been presented by \citet{Soprano2019} during the IRCDL 2019 Conference\footnote{\url{https://ircdl2019.isti.cnr.it/}}. The original paper can be found on Zenodo\footnote{\url{https://zenodo.org/record/1446468}}, while the code and the related documentation is available on GitHub\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}. 
 
 Initially, a recap of its general architecture is presented and subsequently a brief description of the role and purpose of each of its components is presented along with some specific aspects such as the technology used, the internal architecture, the structure of the database and more. This is done by using different types of diagrams belonging to the UML standard (unless otherwise specified) which are drew according to the set of style rules for that standard proposed by \citet{Fowler03}.
 
 \section{General Architecture}
 
-Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed, there must be one (RS\_Server \cite{RS-Server}, presented in Section~\ref{rs-server}) which acts as a server to gather all the ratings given by readers and one that acts as a client (RS\_Rate \cite{RS-Rate}, presented in Section~\ref{rs-rate}) to allow the readers themselves to effectively rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. There is also an additional component (RS\_PDF \cite{RS-PDF}, presented in Section~\ref{rs-pdf}) since there is the task to annotate files in PDF format is carried out by an ad hoc software library exploited by the server-side application. An overview of the architecture of Readersourcing 2.0 is shown in Figure~\ref{fig:architecture} and in the following we briefly describe these three components. 
+Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed, there must be one (RS\_Server \cite{RS-Server}, presented in Section~\ref{rs-server}) which acts as a server to gather all the ratings given by readers and one that acts as a client (RS\_Rate \cite{RS-Rate}, presented in Section~\ref{rs-rate}) to allow the readers themselves to effectively rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. There is also a component (RS\_PDF \cite{RS-PDF}, presented in Section~\ref{rs-pdf}) which has the task to annotate files in PDF format by taking advantage of an ad hoc software library; this component is exploited by the server-side application. Lastly, there is also an additional component (RS\_Py, presented in Section~\ref{rs-py}) which provides a fully working implementation of the RSM and TRM models described by \citet{Soprano2019}. An overview of the architecture of Readersourcing 2.0 is shown in Figure~\ref{fig:architecture} and in the following we briefly describe these three components. 
 
 \begin{figure}[h]
 \centering
@@ -624,6 +624,72 @@ RS\_Rate is freely available on the main browsers webstores. To use it, simply t
 \item \textbf{Google Chrome} version available at: \url{https://chrome.google.com/webstore/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg?hl=it};
 \item \textbf{Firefox} version available at: \emph{currently disabled, will be available at a later time}.
 \end{itemize}
+
+\section{RS\_Py}
+
+\label{rs-py}
+
+RS\_Py \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem which provides a fully-working implementation of the models presented by \citet{Soprano2019} which are incapsulated by the server-side application of Readersourcing 2.0 described in Section \ref{rs-server}. Developers with a background in Python programming language can take advantage of RS\_Py to generate and test new simulations of ratings given by readers to a set of publications and they are allowed to alter the internal logic of the models to test new approaches without the need to fork and edit the full implementation of Readersourcing 2.0.
+
+\subsection{Implementation and Technology}
+
+RS\_Py is a collection of \emph{Jupyter Notebooks}. Jupyter\footnote{\url{https://jupyter.org/}} is a Python-powered\footnote{\url{https://www.python.org/}} open-source web application that allows to create and share documents that contain live code, equations, visualizations and narrative text. Notebooks can be shared with others and are made of cells that can be run indepently of each other which provide a step-by-step overview to the implemented computations. 
+
+\subsection{Installation}
+
+To use RS\_Py notebooks it is sufficient to clone its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} and place it somewhere on the filesystem. Be sure to install the required Python packages by taking advantage of a distribution like Anaconda\footnote{\url{https://www.anaconda.com/distribution/}}. If a lightweight installation is preferred, an instance of Python $3.7.3$ is needed to install the required packages like Jupyter, Pandas and others.
+
+\subsection{Usage}
+
+RS\_Py is organized into five main folders on the filesystem:
+\begin{itemize}
+\item the \verb|data| folder is used to store the dataset exploited to test the models presented by \citet{Soprano2019};
+\item the \verb|models| folder is used to store the output of such models;
+\item the \verb|notebooks| folder contains the jupyter notebooks used to generate new datasets and to implement the models presented by \citet{Soprano2019};
+\item the \verb|scripts| folder contains implementations of the jupyter notebooks as pure Python scripts;
+\item the \verb|src| folder contains a Python scripts which converts jupyter notebooks into pure Python scripts. 
+\end{itemize}
+
+Within the \verb|notebooks| folder there are three jupyter notebooks. \verb|Readersourcing.ipynb| provides an implementation of the RSM model presented by \citet{Soprano2019} while \verb|TrueReview.ipynb| provides an implementation of the TRM one. Lastly, the \verb|Seeder.ipynb| notebook allows to generate new datasets, which will be stored inside the \verb|data| folder. Inside the \verb|src| folder the \verb|Convert.py| script allows to convert the notebooks in Python scripts which are then stored inside the \verb|scripts| folder. 
+
+The behavior of \verb|Seeder.ipynb| and \verb|Readersourcing.ipynb| notebooks can be edited by taking advantage of the parameter setting section which is located in the first rows of both notebooks. Table \ref{tab:seeder-notebook} shows the parameters available for the former, while Table \ref{tab:readersourcing-notebook} shows the parameters available for the latter. 
+
+To run and use the jupyter notebooks move inside the main directory of RS\_Py using a command line prompt (with an \verb|ls| or \verb|dir| command you should see \verb|data|, \verb|models|, \verb|notebooks|, etc. folders) and type \verb|jupyter notebook|\footnote{\url{https://jupyter.readthedocs.io/en/latest/running.html\#running}}. This command will start the Jupyter server and you will be able to take advantage of the \emph{Notebook Dashboard} within your browser at the url of the web application (by default, \verb|http://localhost:8888|).
+
+\begin{table}
+\centering
+\begin{tabular}{p{3cm}p{7cm}p{3cm}}
+\toprule
+\textbf{Parameter}  & \textbf{Description} & \textbf{Values} \\
+\midrule
+\verb|dataset_name| & Name of the dataset to simulate & String \\
+\verb|papers_number| &  Number of papers to simulate & Positive integer \\
+\verb|readers_number| &  Number of readers to simulate & Positive integer \\
+\verb|authors_number| &  Number of authors to simulate & Positive integer \\
+\verb|months_number| &  Number of months of activity to simulate & Positive integer \\
+\verb|paper_frequencies| &  Amount of papers rated by each reader group & Array of positive integers \\
+\verb|readers_percent| & Percentual of readers to assign to a single group & Positive integer\\
+\bottomrule
+\end{tabular}
+\caption{Parameters available for the Seeder jupyter notebook.}
+\label{tab:seeder-notebook}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{p{5cm}p{5.5cm}p{2.5cm}}
+\toprule
+\textbf{Parameter}  & \textbf{Description} & \textbf{Values} \\
+\midrule
+\verb|dataset_name| & Name of the dataset to simulate & String \\
+\verb|day_serialization| & Activate serialization of data on a per day basis & True, False \\
+\verb|day_serialization_threshold| & Serialize data every X days & Positive integer \\
+\verb|days_number| & Amount of days simulated in the input dataset & Positive integer \\
+\bottomrule
+\end{tabular}
+\caption{Parameter available for the Readersourcing jupyter notebook.}
+\label{tab:readersourcing-notebook}
+\end{table}
 
 \newpage
 
