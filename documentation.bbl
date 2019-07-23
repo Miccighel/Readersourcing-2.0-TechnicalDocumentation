@@ -1,0 +1,196 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.0 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{nty/global//global/global}
+  \entry{Fowler03}{book}{}
+    \name{author}{1}{}{%
+      {{hash=FM}{%
+         family={Fowler},
+         familyi={F\bibinitperiod},
+         given={Martin},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Addison-Wesley Longman Publishing Co., Inc.}%
+    }
+    \strng{namehash}{FM1}
+    \strng{fullhash}{FM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{edition}{3}
+    \field{isbn}{0321193687}
+    \field{title}{UML Distilled: A Brief Guide to the Standard Object Modeling
+  Language}
+    \list{location}{1}{%
+      {Boston, MA, USA}%
+    }
+    \field{year}{2003}
+  \endentry
+
+  \entry{Soprano2019}{article}{}
+    \name{author}{2}{}{%
+      {{hash=SM}{%
+         family={Soprano},
+         familyi={S\bibinitperiod},
+         given={M.},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={Mizzaro},
+         familyi={M\bibinitperiod},
+         given={S.},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SM+1}
+    \strng{fullhash}{SMMS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{pages}{259\bibrangedash 273}
+    \field{title}{Crowdsourcing Peer Review: As We May Do}
+    \field{volume}{988}
+    \field{journaltitle}{Communications in Computer and Information Science}
+    \field{year}{2019}
+  \endentry
+
+  \entry{RS-PDF}{misc}{}
+    \name{author}{2}{}{%
+      {{hash=SM}{%
+         family={Soprano},
+         familyi={S\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={Mizzaro},
+         familyi={M\bibinitperiod},
+         given={Stefano},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SM+2}
+    \strng{fullhash}{SMMS2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \verb{doi}
+    \verb 10.5281/zenodo.1442598
+    \endverb
+    \field{title}{{Readersourcing 2.0: RS\_PDF}}
+    \verb{url}
+    \verb https://doi.org/10.5281/zenodo.1442597
+    \endverb
+  \endentry
+
+  \entry{RS-Py}{misc}{}
+    \name{author}{2}{}{%
+      {{hash=SM}{%
+         family={Soprano},
+         familyi={S\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={Mizzaro},
+         familyi={M\bibinitperiod},
+         given={Stefano},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SM+2}
+    \strng{fullhash}{SMMS2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \verb{doi}
+    \verb 10.5281/zenodo.3245208
+    \endverb
+    \field{title}{{Readersourcing 2.0: RS\_Py}}
+    \verb{url}
+    \verb https://doi.org/10.5281/zenodo.3245208
+    \endverb
+  \endentry
+
+  \entry{RS-Rate}{misc}{}
+    \name{author}{2}{}{%
+      {{hash=SM}{%
+         family={Soprano},
+         familyi={S\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={Mizzaro},
+         familyi={M\bibinitperiod},
+         given={Stefano},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SM+2}
+    \strng{fullhash}{SMMS2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \verb{doi}
+    \verb 10.5281/zenodo.1442599
+    \endverb
+    \field{title}{{Readersourcing 2.0: RS\_Rate}}
+    \verb{url}
+    \verb https://doi.org/10.5281/zenodo.1442599
+    \endverb
+  \endentry
+
+  \entry{RS-Server}{misc}{}
+    \name{author}{2}{}{%
+      {{hash=SM}{%
+         family={Soprano},
+         familyi={S\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={Mizzaro},
+         familyi={M\bibinitperiod},
+         given={Stefano},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SM+2}
+    \strng{fullhash}{SMMS2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \verb{doi}
+    \verb 10.5281/zenodo.1442630
+    \endverb
+    \field{title}{{Readersourcing 2.0: RS\_Server}}
+    \verb{url}
+    \verb https://doi.org/10.5281/zenodo.1442630
+    \endverb
+  \endentry
+\enddatalist
+\endinput

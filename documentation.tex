@@ -245,7 +245,7 @@ The communication interface of RS\_Server is constantly evolving and, for this r
 \centering
 \begin{tabular}{p{12cm}}
   \toprule
-	\url{https://web.postman.co/collections/4632696-c26fc049-7021-4691-beb3-97cebfb60adb?workspace=8a3ef37e-60b1-4b49-8782-e73d2a6e3a8c}  \\
+	\url{https://documenter.getpostman.com/view/4632696/RWTiwfV4?version=latest}  \\
  \toprule
   \end{tabular}
 \end{table}
@@ -481,6 +481,7 @@ Regardless of the chosen deploy modality, there is the need to set some environm
 \verb|SENDGRID_API_KEY| & API key of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|SENDGRID_DOMAIN| & A domain registered within your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|BUG_REPORT_MAIL| & An email address to receive bug reports & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
+\verb|CONTACT_MAIL| & An email address to receive general questions & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
 \verb|RAILS_LOG_TO_STD| & If set to \verb|true|, Rails writes its logs to the standard output. Useful for debugging purposes. & 3 & production & \verb|.env| file, Heroku App \\
 \bottomrule
 \end{tabular}
@@ -505,6 +506,7 @@ To set an environment variable in a local \verb|.env| file, create it inside the
 \State$\text{SENDGRID\_DOMAIN=your\_sendgrid\_domain}$
 \State$\text{SENDGRID\_API\_KEY=your\_sendgrid\_secret\_api\_key}$
 \State$\text{BUG\_REPORT\_MAIL=your\_bug\_report\_mail}$
+\State$\text{CONTACT\_MAIL=your\_contact\_mail}$
 \end{algorithmic}
 \end{algorithm}
 
