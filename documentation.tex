@@ -458,8 +458,8 @@ Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readerso
 \item \verb|heroku container:push web --app your-app-name|;
 \item \verb|heroku container:release web --app your-app-name|;
 \item \verb|heroku open --app your-app-name| (optional);
-\item \verb|heroku run rake db:create --app your-app-name| (optional);
-\item \verb|heroku run rake db:migrate --app your-app-name| (optional);
+\item \verb|heroku run rake db:migrate -e production --app your-app-name| (optional);
+\item \verb|heroku run rake db:seed -e production --app your-app-name| (optional);
 \item set environment variables on your Heroku app.
 \end{itemize}
 
