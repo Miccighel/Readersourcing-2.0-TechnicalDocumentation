@@ -11,6 +11,7 @@
 \usepackage[counterclockwise]{rotating}
 \usepackage{listings}
 \usepackage{fancyhdr}
+\usepackage{enumerate}
 \usepackage{longtable}
 \usepackage{subcaption}
 \usepackage{multirow}
@@ -34,11 +35,11 @@
 \usepackage{mathtools}
 \usepackage{etoolbox}
 \usepackage{xcolor,colortbl}
-\usepackage{lscape}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{hyperref}
 \usepackage{titlesec}
+\usepackage{xspace}
 
 % NOME DEL FILE CONTENENTE LA BIBLIOGRAFIA. IL FILE DEVE TROVARSI NELLA ROOT DEL FILE .TEX, AVERE IL NOME INDICATO TRA LE PARENTESI GRAFFE ED ESTENSIONE .bib 
 
@@ -161,6 +162,16 @@ breaklines=true
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 
+\newcommand{\rsserver}{RS\_Server\xspace}
+\newcommand{\rspdf}{RS\_PDF\xspace}
+\newcommand{\rsrate}{RS\_Rate\xspace}
+\newcommand{\rspy}{RS\_Py\xspace}
+
+\lstset{
+columns=flexible,
+breaklines=true
+}
+
 % INFORMAZIONI GENERALI
 
 \titolo{Readersourcing 2.0:\\ Documentation}
@@ -186,13 +197,15 @@ breaklines=true
 \section{Introduction}
 
 
-The Readersourcing 2.0 ecosystem has been built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and University of Udine\footnote{\url{https://www.uniud.it/}}. It has been presented by \citet{Soprano2019} during the IRCDL 2019 Conference\footnote{\url{https://ircdl2019.isti.cnr.it/}}. The original paper can be found on Zenodo\footnote{\url{https://zenodo.org/record/1446468}}, while the code and the related documentation is available on GitHub\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}. 
+The Readersourcing 2.0 ecosystem has been built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and University of Udine.\footnote{\url{https://www.uniud.it/}} It has been presented by \citet{Soprano2019} during the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The paper can be found also on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and the related documentation is available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
 
-Initially, a recap of its general architecture is presented and subsequently a brief description of the role and purpose of each of its components is presented along with some specific aspects such as the technology used, the internal architecture, the structure of the database and more. This is done by using different types of diagrams belonging to the UML standard (unless otherwise specified) which are drew according to the set of style rules for that standard proposed by \citet{Fowler03}.
+Initially, a recap of its general architecture is presented, followed by a brief description of the role and purpose of each of its components. Specific aspects, such as the technology used, the internal architecture, and the structure of the database, are also discussed. This is achieved through the use of different types of diagrams adhering to the UML standard (unless otherwise specified), which are drawn according to the style rules for that standard proposed by \citet{Fowler03}.
 
 \section{General Architecture}
 
-Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed, there must be one (RS\_Server \cite{RS-Server}, presented in Section~\ref{rs-server}) which acts as a server to gather all the ratings given by readers and one that acts as a client (RS\_Rate \cite{RS-Rate}, presented in Section~\ref{rs-rate}) to allow the readers themselves to effectively rate publications, althought it is possible to carry out every operation also directly on the web interface provided by RS\_Server. There is also a component (RS\_PDF \cite{RS-PDF}, presented in Section~\ref{rs-pdf}) which has the task to annotate files in PDF format by taking advantage of an ad hoc software library; this component is exploited by the server-side application. Lastly, there is also an additional component (RS\_Py, presented in Section~\ref{rs-py}) which provides a fully working implementation of the RSM and TRM models described by \citet{Soprano2019}. An overview of the architecture of Readersourcing 2.0 is shown in Figure~\ref{fig:architecture} and in the following we briefly describe these three components. 
+Readersourcing 2.0 is an ecosystem composed of more than one component. Specifically, it includes \rsserver \cite{RS-Server} (presented in Section~\ref{rs-server}), which acts as a server to gather all the ratings given by readers, and \rsrate \cite{RS-Rate} (presented in Section~\ref{rs-rate}), which acts as a client, enabling readers to rate publications. Although all operations can be carried out directly on the web interface provided by \rsserver, another component, \rspdf \cite{RS-PDF} (presented in Section~\ref{rs-pdf}), is responsible for annotating PDF files using a dedicated software library. This component is utilized by the server-side application. Additionally, \rspy (presented in Section~\ref{rs-py}) provides a fully functional implementation of the RSM and TRM models described by \citet{Soprano2019}. 
+
+Figure~\ref{fig:architecture} provides an overview of the architecture of Readersourcing 2.0, and in the following, we briefly describe these four components. We summarize the capabilities of the ecosystem in Section~\ref{overview}.
 
 \begin{figure}[h]
 \centering
@@ -201,22 +214,27 @@ Readersourcing 2.0 is an ecosystem composed of more than one application. Indeed
 \label{fig:architecture}
 \end{figure}
 
-\section{RS\_Server}
+\section{\rsserver}
 
 \label{rs-server}
 
-RS\_Server \cite{RS-Server} is the server-side application which has the task to collect and aggregate the ratings given by readers and to use RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. An instance of RS\_Server is deployed along one of RS\_PDF.
-Then, there are up to \emph{n} different browsers along with their end-users, which communicate with the server: each of them is characterized by an instance of \emph{RS\_Rate}. Both RS\_PDF and RS\_Rate are described in the following. 
+\rsserver \cite{RS-Server} is the server-side component that has the task of collecting and aggregating the ratings given by readers and using the RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. An instance of \rsserver is deployed along one of \rspdf. 
+Then, there are up to \emph{n} different browsers along with their end-users, which communicate with the server: each of them is characterized by an instance of \rsrate. Both \rspdf and \rsrate are described in the following.
 
-This setup means that every interaction between readers and server can be carried out through clients installed on readers' browsers or by using the stand-alone web interface provided by RS\_Server and these clients have to handle the registration and authentication of readers, the rating action and the download action of link-annotated publications. 
+This setup facilitates interactions between readers and the server through clients installed on readers' browsers or by utilizing the stand-alone web interface provided by \rsserver. These clients are responsible for managing the registration and authentication of readers, handling rating actions, and managing the download actions of link-annotated publications.
 
-During the design phase of RS\_Server some strategies have been adopted to ensure its extensibility and generality. This means that: (i) it is straightforward to add new models, (ii) each model shares the same input data format, and (iii) if a model needs to save values locally to the RS\_Server (i.e., in its database), there is a standard procedure to allow that.
+During the design phase of \rsserver, strategies were adopted to ensure extensibility and generality. This includes: 
+\begin{enumerate}[label=(\roman*)]
+\item Straightforward addition of new models. 
+\item A shared input data format among all models.
+\item A standard procedure for models needing to save values locally in the \rsserver database.
+\end{enumerate}
 
 \subsection{Implementation and Technology}
 
-RS\_Server is developed in Ruby on Rails,\footnote{\url{https://rubyonrails.org/}} which is a framework that allows to build applications strongly based on the Model-View-Controller (MVC) architectural pattern. The technology used to develop RS\_Server is an open-source web application framework called \emph{Ruby on Rails} (it is also called \emph{RoR} or \emph{Rails} only; more specifically, \emph{Rails} is the framework built above \emph{Ruby}, the actual programming language). It allows to build applications strongly based on the Model-View-Controller (MVC) architectural pattern.
+\rsserver is developed in Ruby on Rails,\footnote{\url{https://rubyonrails.org/}} which is a framework that allows building applications strongly based on the Model-View-Controller (MVC) architectural pattern. The technology used to develop \rsserver is an open-source web application framework called \emph{Ruby on Rails} (also referred to as \emph{RoR} or \emph{Rails} only). More specifically, \emph{Rails} is the framework built above \emph{Ruby}, the actual programming language. It allows building applications strongly based on the Model-View-Controller (MVC) architectural pattern.
 
-The MVC pattern allows to separate the control logic of the program from data  presentation and business logic. Thefore, it allows to obtain an effective architecture since the first moments of its design phase. An intuitive representation of the structure that this pattern allows to obtain is shown in Figure \ref{fig:mvc}. This structure consists of three distinct entities, called \emph{Controller}, \emph{Model} and \emph{View}. These entities have the task of, respectively, managing control logic, encapsulating business logic and implementing data presentation.
+The MVC pattern allows for the separation of the control logic of the program from data presentation and business logic. Therefore, it facilitates the creation of an effective architecture from the initial design phase. Figure \ref{fig:mvc} provides an intuitive representation of the structure that this pattern enables. The structure comprises three distinct entities: the \emph{Controller}, responsible for managing control logic; the \emph{Model}, tasked with encapsulating business logic; and the \emph{View}, responsible for implementing data presentation.
 
 \begin{figure}[!tbp]
 \centering
@@ -225,21 +243,21 @@ The MVC pattern allows to separate the control logic of the program from data  p
 \label{fig:mvc}
 \end{figure}
 
-The Controller has direct access to the Model and to the View; from the latter, generally, it receives the user input and on its basis the Controller itself updates the internal state of the Model using its methods. Finally, the Controller sends the updated Model to the View, which is then exploited by the View itself to obtain and display the results of the processing. A generic software can have more than one Controller, where each of them can manage more than one Model instances. In MVC frameworks dedicated to the development of web applications such as Rails, in fact, it is common practice to have a number of Controllers equal to the number of entities modeled within the application domain. Furthermore, there may be more than one View implementation to present the internal state of a specific type of Model.
+The Controller has direct access to both the Model and the View. Typically, it receives user input from the View and, based on this input, updates the internal state of the Model using its methods. Subsequently, the Controller sends the updated Model to the View, which then utilizes this information to obtain and display the results of the processing. In a generic software system, there can be more than one Controller, and each Controller may manage multiple instances of the Model. In MVC frameworks designed for web applications, such as Rails, it is common practice to have a number of Controllers equal to the entities modeled within the application domain. Additionally, there may be more than one View implementation to present the internal state of a specific type of Model.
 
-The use of MVC pattern is not the only founding principle of Rails. One of the most important principles on which Rails itself is based for the developement of quality applications is \lq\lq Convention Over Configuration\rq\rq{}. In other words, the framework tries to minimize the decisions that the developer must take during the construction of its application by adopting standard conventions that he can modify if he needs more flexibility. The founding principles of Rails can be deepened by reading the \emph{Rails Doctrine}\footnote{\url{https://rubyonrails.org/doctrine/}}.
+The use of the MVC pattern is not the sole foundational principle of Rails. One of the most crucial principles shaping Rails for the development of high-quality applications is \lq\lq Convention Over Configuration\rq\rq{}. In essence, the framework aims to reduce the decisions developers need to make during application construction by embracing standard conventions that can be modified for increased flexibility if necessary. To delve deeper into the foundational principles of Rails, one can refer to the \lq\lq Rails Doctrine\rq\rq{}.\footnote{\url{https://rubyonrails.org/doctrine/}}
 
-As a last note, Rails is a continuously developing framework and is used industrially by several well-known industry players such as \emph{GitHub}, \emph{SoundCloud}, \emph{Airbnb} and others. It is, therefore, a widespread and appreciated technology, for which there is an active community and a lot of learning material.
+As a final note, Rails is a dynamically evolving framework widely employed in the industry by prominent players such as \emph{GitHub}, \emph{SoundCloud}, and others. It is a widely embraced and esteemed technology with an active community and abundant learning resources.
 
 \subsection{Communication Paradigm}
 
-A modern MVC framework such as Rails allows to develop various kind of web applications. One of the possibilities is to create a \emph{Web Service}, which is a software component capable of carrying out various operations made remotely available through the exchange of messages encoded in a standard interchange format such as \emph{JSON}, all thanks to a transport layer built above the basic Internet protocols like \emph{HTTP}. All this, however, must be carried out according to a paradigm that defines precisely what are the functionalities (resources and operations) actually available and which messages must be received in order to access them.
+A modern MVC framework like Rails provides the capability to develop various types of web applications. One such possibility is the creation of a \emph{Web Service}, which is a software component capable of executing various operations made remotely accessible through the exchange of messages encoded in a standard interchange format such as \emph{JSON}. This is facilitated by a transport layer built on top of basic Internet protocols like \emph{HTTP}. However, the implementation of this functionality must adhere to a paradigm that precisely defines the available functionalities (resources and operations) and specifies the required messages for accessing them.
 
-One of the possible communication paradigms for Web Services is \emph{RESTful} (\emph{REpresentational State Transfer}). Within this paradigm, the functionalities of a Web Service are represented by resources identified by different URIs and the type of HTTP message sent establishes the operation to be performed. The result of the operation initiated by the message received from the Web Service is a new message encoded according to same interchange format of the one which has been sent and it is the client's responsibility to correctly interpret and use the response of the Web Service itself.
+One of the communication paradigms for Web Services is \emph{RESTful} (\emph{REpresentational State Transfer}). In this paradigm, the functionalities of a Web Service are represented by resources identified through different URIs, and the type of HTTP message sent determines the operation to be performed. The result of the operation initiated by the received message from the Web Service is a new message encoded in the same interchange format as the one sent. It is the client's responsibility to accurately interpret and utilize the response from the Web Service.
 
-RS\_Server is a Web Service (Server API-Only, according to Rails terminology) based on a communication paradigm composed of RESTful (REpresentational State Transfer) interfaces and on the exchange of messages encoded in JSON format through the transport layer provided by the HTTP protocol.
+\rsserver is a Web Service (Server API-Only in Rails terminology) following a communication paradigm based on RESTful interfaces. It operates through the exchange of messages encoded in JSON format, utilizing the transport layer provided by the HTTP protocol.
 
-The communication interface of RS\_Server is constantly evolving and, for this reason, it makes no sense to fully include it in this document. However, it is possible to consult it freely and to see examples of requests that can be made by visiting the URL below.
+The communication interface of \rsserver is continuously evolving. Given the dynamic nature of its development, providing a comprehensive inclusion in this document is impractical. However, interested parties can freely explore the evolving interface, including examples of requests, by visiting the following URL.
 
 \begin{table}[h]
 \centering
@@ -250,7 +268,7 @@ The communication interface of RS\_Server is constantly evolving and, for this r
   \end{tabular}
 \end{table}
 
-To provide an example, a subset of the RESTFul interface of RS\_Server is shown in Table \ref{tab:rest}. These operations are all those available to handle one of the entities of the application domain, namely the publications. Let's then suppose that a user triggers a show operation for a publications characterized by an identifier equal to 1 by visiting the corresponding endpoint. The JSON-encoded response of RS\_Server would be something like the one below.
+To illustrate, Table \ref{tab:rest} presents a subset of the RESTful interface of \rsserver. These operations encompass all functionalities related to managing one of the entities within the application domain, specifically, publications. Suppose a user initiates a ``show'' operation for a publication with an identifier equal to 1 by accessing the corresponding endpoint. In response, \rsserver would provide a JSON-encoded response similar to the example below.
 
 \begin{lstlisting}[language=json,firstnumber=1]
 {
@@ -275,63 +293,83 @@ To provide an example, a subset of the RESTFul interface of RS\_Server is shown 
 \textbf{Endpoint}  &\textbf{HTTP Message} & \textbf{Operation} & \textbf{Description} \\
 \midrule
 /publications.json & GET & Index & Fetches the entire collection of Publications. \\
+\midrule
 /publications/list & GET & List & Fetches the entire collection of Publications (server-side view). \\
+\midrule
 /publications/1.json & GET & Show & Returns the Publication with identifier equal to 1.\\
+\midrule
 /publications/lookup.json & POST & Lookup & Searches for a Publication; if it doesn't exists, it is fetched from the given URL. \\
+\midrule
 /publications/random.json & GET & Random & Returns a random Publication. \\ 
+\midrule
 /publications/1/is\_rated.json & GET & Is Rated & Checks if the Publication with identifier equal to 1 has been rated by at least one reader. \\
+\midrule
 /publications/1/is\_saved\_for\_later.json & GET & Is Saved For Later & Checks if the Publication with identifier equal to 1 has been saved for later by the current user. \\
+\midrule
 /publications.json & POST & Create & Creates a new Publication. \\
+\midrule
 /publications/is\_fetchable.json & POST & Is Fetchable & Checks if the provided URL contains a fetchable Publication. \\
+\midrule
 /publications/extract.json & POST & Extract & Extract the rating url from a link-annotated Publication. \\
+\midrule
 /publications/fetch.json & POST & Fetch & Fetches a Publication from the given URL. \\
+\midrule
 /publications/1/refresh.json & GET & Refresh & Fetches again the Publication with identifier equal to 1. \\
+\midrule
 /publications/1.json & PUT & Update & Updates the Publication with identifier equal to 1. \\
+\midrule
 /publications/1.json & DELETE & Delete & Deletes the Publication with identifier equal to 1.\\
+\midrule
 \dots & \dots & \dots & \dots \\
 \bottomrule
 \end{tabular}
-\caption{Subset of the RESTFul interface of RS\_Server.}
+\caption{Subset of the RESTFul interface of \rsserver.}
 \label{tab:rest}
  \end{threeparttable}
 \end{table}
 
 \subsection{Database}
 
-To implement the storage of link-annotated publications, user authentication and the other functionalities it is necessary to define a database schema, which is shown in Figure \ref{fig:er}. There are three main entities modeled within the application domain of Readersourcing 2.0:
+To facilitate the implementation of functionalities such as the storage of link-annotated publications and user authentication, a database schema has been defined, as illustrated in Figure~\ref{fig:er}. Within the application domain of Readersourcing 2.0, three main entities have been modeled:
 
 \begin{itemize}
-\item \textbf{Users}: models the users of the system itself, which are characterized by their personal data, an optional \emph{ORCID} and a boolean used to check if the user wants to receive emails or not. There are also some attributes used to store various kind of tokens to allow operations like password reset;
-\item \textbf{Ratings}: models the ratings given by readers of publications which are characterized by a numerical score. Also, there is a boolean to check if a rating is anonymous or not and another one to check if it has been edited at a later time;
-\item \textbf{Publications}: models the publications rated by their readers which are characterized by an optional \emph{DOI}, by various metadata and by a whole series of attributes used to manage the paths on the server filesystem in order to guarantee the storage of the original and link-annotated files encoded in PDF format. 
+\item \textbf{Users}: models the users of the system, characterized by their personal data. Users may have an optional \emph{ORCID} and a boolean indicating whether they wish to receive emails. Additionally, various attributes are utilized to store different types of tokens, enabling operations such as password reset.
+\item \textbf{Ratings}: represents the ratings provided by readers for publications. These ratings are characterized by a numerical score. The entity also includes a boolean to indicate whether a rating is anonymous, and another boolean to track whether it has been edited at a later time.
+\item \textbf{Publications}: models the publications that have been rated by readers. These publications are characterized by an optional \emph{DOI}, various metadata, and a set of attributes used to manage server filesystem paths. These attributes ensure the storage of both the original and link-annotated files, both encoded in PDF format.
 \end{itemize}
-Moreover, each of these entities is characterized by further attributes (\emph{steadiness}, \emph{informativeness}, \dots) which represent the scores/parameters computed by the Readersourcing models.
+In addition, each of these entities is further characterized by additional attributes (\emph{steadiness}, \emph{informativeness}, \dots), representing the scores or parameters computed by the Readersourcing models.
 
 \begin{figure}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/er.png}
-\caption{Entity-Relationship schema of the database of RS\_Server (NOT UML).}
+\caption{Entity-Relationship schema of the \rsserver database (NOT UML).}
 \label{fig:er}
 \end{figure}
 
-Figure \ref{fig:er} shows also two relationships (\emph{gives} and \emph{related\_to}) which exist between these three entities. These relationships allow to \lq\lq tie together\rq\rq{} the entities to which they refer and to ensure compliance with the \emph{referential integrity} constraint.
+Figure~\ref{fig:er} also depicts two relationships (\emph{gives} and \emph{related\_to}) that exist between these three entities. These relationships facilitate the ``tying together'' of the entities they reference and ensure compliance with the \emph{referential integrity} constraint.
 
-In particular, the \emph{gives} relation establishes that a user can give $[0,\dots ,n]$ different ratings, while a single rating can be expressed at most by a user. At first glance, the multiplicity equal to $0$ shown in Figure \ref{fig:er} regarding users may look strange. The meaning of this constraint is to allow the expression of anonymous ratings. Likewise, the relation \emph{related\_to} establishes that a rating is relative to a certain  publication, while a publication can be characterized by $[1,\dots ,n]$ different ratings. Moreover, this structure allows to comply in a \lq\lq natural\rq\rq{} way with other constraints, such as the fact that if at least at least one publication does not exist, no ratings have to exist.
+In particular, the \emph{gives} relation establishes that a user can give $[0,\dots ,n]$ different ratings, with the constraint that a single rating can be expressed at most by a user. The multiplicity equal to $0$ regarding users in Figure~\ref{fig:er} may seem unusual at first glance. However, this constraint is intended to allow the expression of anonymous ratings.
+
+Similarly, the \emph{related\_to} relation establishes that a rating is associated with a specific publication, while a publication can be characterized by $[1,\dots ,n]$ different ratings. This structure naturally accommodates other constraints, such as the condition that if at least one publication does not exist, no ratings need to exist.
 
 \subsection{Class Diagram}
 
-Figure \ref{fig:class-1} shows a diagram of the main classes of RS\_Server. As one can see, the convention for which there is an MVC triple for each of the entities modeled in the application domain is followed, althought Views are not shown in the diagram because in this case they are just simple methods. The Controller methods represent actions that a user can perform on individual entities or on collections of them, thus mapping the endpoints of the communication protocol used in order to allow the communication between RS\_Server and the instances of RS\_Rate. As for the Models, their attributes represent the characteristics of the reference entity, while their methods encapsulate the business logic.
+Figure~\ref{fig:class-1} shows a diagram of the main classes of \rsserver. As one can see, the convention for which there is an MVC triple for each of the entities modeled in the application domain is followed, althought Views are not shown in the diagram because in this case they are just simple methods. The Controller methods represent actions that a user can perform on individual entities or on collections of them, thus mapping the endpoints of the communication protocol used in order to allow the communication between \rsserver and the instances of \rsrate. As for the Models, their attributes represent the characteristics of the reference entity, while their methods encapsulate the business logic.
 
 \begin{figure}[!tbp]
 \centering
 \includegraphics[scale=0.4]{figures/classi-1.png}
-\caption{Class diagram of RS\_Server.}
+\caption{Class diagram of \rsserver.}
 \label{fig:class-1}
 \end{figure}
 
-Furthermore, there are two additional Controllers\footnote{\emph{Application Controller} and \emph{AuthenticationController}.} responsible for managing user authentication. RS\_Server, as specified previously, is a Web Service; this means that the user interface is presented directly on the instances of RS\_Rate and, therefore, those instances send messages to which RS\_Server responds once the necessary processing has been completed, according to the RESTful communication paradigm. Because of this design choice, it is not possible to use the \lq\lq classic\rq\rq{} server-side approach to user authentication according to which some information relative to the logged user are saved in the session data, since RESTful paradigm is \emph{stateless}. To be able to authenticate himself, therefore, the user client must attach to each request a \emph{token} that identifies its user as valid within the system. Therefore, a \emph{token-based} authentication approach has been implemented.
+Additionally, there are two controllers—namely, the \emph{Application Controller} and the \emph{Authentication Controller}—tasked with managing user authentication. As mentioned earlier, \rsserver functions as a Web Service. In this setup, the user interface is presented directly on instances of \rsrate. Consequently, these instances send messages to which \rsserver responds once the necessary processing is complete, following the RESTful communication paradigm.
 
-When a user performs the first request to RS\_Server since some time, he must fill in the login form. If these inserted credentials exist in the database they are encrypted (a \emph{payload} is obtained) and used together with a unique \emph{signature} to create an alphanumeric JSON string, i.e. the actual token. This token thus generated is sent to the RS\_Rate instance of the user itself which stores it in a secure cookie characterized by an expiration date after which the procedure must be repeated. At each subsequent request to RS\_Server, the instance of RS\_Rate attaches\footnote{In the \emph{Authorization} header of the HTTP payload.} the previously obtained token in order to demonstrate that its user has successfully completed the authentication procedure. As for RS\_Server, if a token is present it is extracted and decoded and if it corresponds to one of those saved in the database, then the user identified by the payload is authorized to proceed. An intuitive scheme of the process procedure is shown in Figure \ref{fig:auth}.
+Due to this design choice, the traditional server-side approach to user authentication, where information about the logged user is stored in session data, is not viable. This is because the RESTful paradigm is \emph{stateless}. To authenticate themselves, users must attach a \emph{token} to each request, identifying their validity within the system. Therefore, a \emph{token-based} authentication approach has been implemented.
+
+When a user initiates the first request to \rsserver after a period of inactivity, they are required to fill in the login form. If the provided credentials exist in the database, they are encrypted to form a \emph{payload}. This payload, combined with a unique \emph{signature}, results in an alphanumeric JSON string—the actual token. The generated token is then sent to the user's \rsrate instance, which securely stores it in a cookie with an expiration date. Subsequent requests to \rsserver from the \rsrate instance include the previously obtained token in the \emph{Authorization} header of the HTTP payload, demonstrating that the user has successfully completed the authentication procedure.
+
+For \rsserver, upon receiving a request, if a token is present, it is extracted and decoded. If the decoded token corresponds to one saved in the database, the user identified by the payload is authorized to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
 \begin{figure}[!tbp]
 \centering
@@ -340,31 +378,50 @@ When a user performs the first request to RS\_Server since some time, he must fi
 \label{fig:auth}
 \end{figure}
 
-Finally, there is an additional set of classes which are used for different purposes than representing MVC triples for the entitities of the application domain. In particular, they are exploited internally by the model containing the business logic to manage the given ratings and have the task of implementing the Readersourcing models. The structure of these classes follows a design pattern called\footnote{\emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RSMStrategy} e \emph{TRMStrategy}.} \emph{Strategy} because this pattern allows to integrate new models at a later time without having to make radical changes in the structure of RS\_Server.
+Additionally, there is another set of classes serving purposes beyond representing MVC triples for the entities in the application domain. Specifically, these classes are internally utilized by the model containing the business logic to manage given ratings and are responsible for implementing the Readersourcing models. The structure of these classes adheres to a design pattern known as \emph{Strategy} (specifically, \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RSMStrategy}, and \emph{TRMStrategy}). The use of the \emph{Strategy} pattern allows for the integration of new models at a later time without necessitating radical changes to the structure of \rsserver.
 
 \subsection{Deploy}
 
-There are three main modalities that can be exploited to deploy a working instance of RS\_Server in \emph{development} or \emph{production} environment. The former environment must be used if there is the need to add custom Readersourcing model, to extend/modify the current implementation of RS\_Server or simply to test it in a safe way and it is allowed only by deploy modalities 1 and 2, while the latter must be used if RS\_Server is about to be made available for everyone as it is and it is allowed by every deploy modality. In the following these three deploy modalities are described, along with their requirements. It is strongly suggested to read also the sections dedicated to the \emph{environment variables} (\ref{env-1} and \ref{env-2}), since if they are not set RS\_Server will not work properly.
+There are three main modalities that can be used to deploy a working instance of \rsserver in the \emph{development} or \emph{production} environment. The former environment must be used if there is the need to:
+\begin{itemize}
+\item add custom \emph{Readersourcing}-based models;
+\item extend/modify the current implementation of \rsserver;
+\item simply to test it in a safe way.
+\end{itemize}
 
-\subsubsection{1: Manual Way}
+In the following, three deployment modalities to obtain a working instance of \rsserver are described along with their requirements. The first two modalities allow for starting \rsserver on the local machine, enabling the editing of its source code, and building a Docker image that can be deployed via local containers in a production-ready environment. The third modality enables deploying \rsserver as a Heroku application.
+
+It is strongly suggested to read the section dedicated to the environment variables (Section \ref{env-vars}), as \rsserver will not function properly without them.
+
+\subsubsection{Modality 1: Manual}
 
 \label{deploy1}
 
-This deploy modality allows to manually downwload and start RS\_Server locally to a machine chosen as a server. This is the most demanding modality regarding is requirements since it assumes that you have a full and working installation of \emph{Ruby}, \emph{JRE} (Java Runtime Environment) and \emph{PostgreSQL} and everything must be set up manually, but it allows more flexibility if a particular setup is required for any reason. 
+This modality allows for manually downloading and initializing \rsserver's codebase on a local machine. It is the most demanding in terms of prerequisites, as it assumes having a full and working installation of \emph{Ruby}, \emph{JDK} (Java Development Kit), and \emph{PostgreSQL}. Despite these requirements, it offers greater flexibility.
 
 \subsubsubsection{Requirements}
 
 \begin{itemize}
-\item Ruby $>=$ 2.5.3;
-\item JRE (Java Runtime Environment) $>=$ 1.8.0;
+\item Ruby $==$ 2.7.8;
+\item JDK (Java Development Kit) $==$ 11.0.19;
 \item PostgreSQL $>=$ 11.2.
 \end{itemize}
 
 \subsubsubsection{How To}
 
-Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside its main directory using a command line prompt (with an \verb|ls| or \verb|dir| command you should see \verb|app|, \verb|bin|, \verb|config|, etc. folders) and type \verb|gem install bundler|. This gem (dependency) will provides a consistent environment for Ruby projects (like RS\_Server) by tracking and installing the exact gems (dependencies) and versions that are needed. 
+Clone the \rsserver repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and navigate to its main directory using a command line prompt (you should see \verb|app|, \verb|bin|, \verb|config|, etc., folders with an \verb|ls| or \verb|dir| command), then type \verb|gem install bundler|. This gem (dependency) provides a consistent environment for Ruby projects, like \rsserver, by tracking and installing the exact gems (dependencies) and versions needed.
 
-To fetch all those required by RS\_Server type \verb|bundle install| and wait for the process to complete. The next two commands are required \emph{only before the first startup of RS\_Server} because they will create and set up the database, so please be sure that the PostgreSQL service is started up and ready to accept connections on port 5432. Type \verb|rake db:create| to create the database and \verb|rake db:migrate| to create the required tables inside it. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, everything is ready to launch RS\_Server in development or production mode. To do that, just type \verb|cd bin| to move inside \verb|bin| directory and then \verb|rails server -b 127.0.0.1 -p 3000 -e development| with the proper values for \verb|-b|, \verb|-p| and \verb|-e| options. If the previous values are used, RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|development| environment. Every request, therefore, must be sent to \url{https://127.0.0.1:3000} address.
+To fetch all dependencies required by \rsserver, type \verb|bundle install| and wait for the process to complete.
+
+The next two commands are necessary \emph{only before the first startup of \rsserver} because they will create and set up the database. Ensure that the PostgreSQL service is started and ready to accept connections on port 5432. Type \verb|rails db:create| to create the database and \verb|rails db:migrate| to create the required tables.
+
+Now, create a \verb|.env| file as explained in Section~\ref{set-var} and set the required environment variables.
+
+Optionally, you can type \verb|rails db:seed| to seed some sample data into the database. After these commands, everything is ready to launch \rsserver in \emph{development} or \emph{production} mode. To do that, type \verb|cd bin| to move inside the \verb|bin| directory, and then type
+\begin{verbatim}
+rails server -b 127.0.0.1 -p 3000 -e development
+\end{verbatim}
+with the proper values for \verb|-b|, \verb|-p|, and \verb|-e| options. If the sample values are used, \rsserver will be started and bound to the \verb|127.0.0.1| IP address with port \verb|3000| and the \verb|development| environment. Every HTTP request, therefore, must be sent to the \verb|http://127.0.0.1:3000| address.
 
 \subsubsubsection{Quick Cheatsheet}
 
@@ -372,82 +429,126 @@ To fetch all those required by RS\_Server type \verb|bundle install| and wait fo
 \item \verb|cd| to main directory;
 \item \verb|gem install bundler|;
 \item \verb|bundle install|;
-\item \verb|rake db:create| (only before first startup);
-\item \verb|rake db:migrate| (only before first startup);
-\item create \verb|.env| file and set environment variables;
+\item \verb|rails db:create|;
+\item \verb|rails db:migrate|;
+\item create and populate the \verb|.env| file;
 \item \verb|cd bin|;
-\item \verb|rails server -b x.x.x.x -p x -e development| or\\ \verb|rails server -b x.x.x.x -p x -e production|.
+\item \verb|rails server -b <your_ip_address> -p <your_port> -e development| or\\ \verb|rails server -b <your_ip_address> -p <your_port> -e production|.
 \end{enumerate}
 
-\subsubsection{2: Manual Way (But Faster)}
+\subsubsection{Modality 2: Manual Way (Using Docker)}
 
-This deploy modality allows to download and start RS\_Server locally to a machine chosen as a server similarly to the modality described in section \ref{deploy1}, but in a way which is faster and less frustrating, despite being less flexible. Moreover, this deploy modality has less demanding requirements, since only a working installation of \emph{Docker Desktop CE (Community Edition)} is required.
+This modality allows you to download and initialize \rsserver's codebase on a local machine using a faster and less frustrating approach based on Docker, despite being less flexible. Docker is a project that automates the deployment phase by distributing an \emph{image} of an application inside a \emph{container}.
 
-Docker is a project which allows to automate the deployment phase by distributing an \emph{image} of an application inside a \emph{container}. A container is a standard unit of software that packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another. A Docker container image is a lightweight, standalone, executable package of software that includes everything needed to run an application: code, runtime, system tools, system libraries and settings. This means that there is no need to manually install the runtimes/libraries/dependencies needed to run an application since the Docker Engine will automatically fetch, install and setup them.
+An \emph{image} is a lightweight, standalone, and executable package of software that includes everything needed to run an application: code, runtime, tools, libraries, and settings. This means that there is no need to manually install the runtimes, libraries, or dependencies needed to run an application since the Docker Engine will automatically initialize everything.
+
+A \emph{container} is a standard unit of software that packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another. Only a working installation of \verb|Docker Desktop CE (Community Edition)| is required.
 
 \subsubsubsection{Requirements}
 
 \begin{itemize}
-\item Docker Desktop CE (Community Edition);
+\item Docker Desktop CE (Community Edition);\footnote{\url{https://www.docker.com/products/docker-desktop}}
 \end{itemize}
 
 \subsubsubsection{How To}
 
-Clone  RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside its main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|; you should see a \verb|docker-compose.yml| file and a \verb|Dockerfile|. If you do not see them, please be sure to be in the main directory of the cloned repository. Before proceeding, \emph{be sure that your Docker Engine has been started up, otherwise the following commands will not work}. At this point two different scenarions could happen, which are outlined in the following. 
+Clone \rsserver repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and navigate to its main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|. You should see a \verb|docker-compose.yml| file and a \verb|Dockerfile|. If you do not see them, please make sure you are in the main directory of the cloned repository.
+
+Before proceeding, \emph{ensure that your Docker Engine is running}. Otherwise, the following commands will not work. At this point, two different scenarios can unfold.
 
 \paragraph{Scenario 1: Deploy With Remote Images}
 
-If there is no need to edit the source code of RS\_Server the \emph{Docker Engine} can simply fetch the dependencies required in the \verb|docker-compose.yml| file and set up the application. To do this, open the \verb|docker-compose.yml| file and uncomment the section between the 
+If there is no need to edit the source code of \rsserver, the Docker Engine can fetch the dependencies required in the \verb|docker-compose.yml| file and initialize the application. The dependencies specified in the file are an image of PostgreSQL for the database and one of \rsserver itself, released on the Docker Hub.\footnote{\url{https://cloud.docker.com/repository/docker/miccighel/rs_server}}
+
+To do this, open the \verb|docker-compose.yml| file and uncomment the following section and, additionally, comment out the remaining lines of code in the file.
 \begin{verbatim}
 ----------- SCENARIO 1: DEPLOY WITH REMOTE IMAGES ----------
-\end{verbatim}
-and 
-\begin{verbatim}
 ----------- END OF SCENARIO 1: DEPLOY WITH REMOTE IMAGES ----------
 \end{verbatim} 
-comments and comment back the remaining lines of code. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, from the command line prompt type \verb|docker-compose up| and wait for the processing to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be started up. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Every request, therefore, must be sent to \verb|https://127.0.0.1:3000| address. As it can be seem, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
+
+Next, from the command line prompt, type \verb|docker-compose up| and wait for the process to finish. Note that it may take several minutes. 
+Once the Docker Engine completes the process, a container with a working instance of \rsserver will be started.
+
+Optionally, you can type \verb|docker-compose run rails db:seed| to seed some sample data in the database. \rsserver will be started and bound 
+to the \verb|0.0.0.0| IP address with port \verb|3000| and the \verb|production| environment. Every HTTP request, therefore, must be sent to 
+the \verb|http://0.0.0.0:3000| address.
+
+As can be seen, there is no need to manually start the server by specifying its IP address, port, and environment, or to create and migrate 
+the database. The Docker Engine will perform that automatically. If you want to set a custom IP address or port or switch 
+to the production environment, edit the \verb|command| key inside the \verb|docker-compose.yml| file.
+
+To stop the container, simply type \verb|docker-compose down|.
 
 \paragraph{Scenario 2: Deploy With Local Build}
 
-If the source code of RS\_Server has been edited the application must be built locally by the Docker Engine according to the structure specified in the \verb|Dockerfile|. After this build phase the Docker Engine itself can simply fetch the required dependencies outlined in the \verb|docker-compose.yml| file and set RS\_Server up. To do this, open the \verb|docker-compose.yml| file and uncomment the section between the 
+If the source code of \rsserver has been edited, the application must be built from scratch by the Docker Engine according to the structure 
+specified in the \verb|Dockerfile|. After the image build phase, the Docker Engine can fetch the required dependencies outlined in 
+the \verb|docker-compose.yml| file and initialize \rsserver, as in the previous scenario.
+
+To do this, open the \verb|docker-compose.yml| file and uncomment the following section. 
+Additionally, comment out the remaining lines of code in the file.
 \begin{verbatim}
 ----------- SCENARIO 2: DEPLOY WITH LOCAL BUILD ----------
-\end{verbatim}
-and 
-\begin{verbatim}
 ----------- END OF SCENARIO 2: DEPLOY WITH LOCAL BUILD -----------
 \end{verbatim} 
-comments and comment back the remaining lines of code. Now, create a \verb|.env| file as explained in section \ref{env-1} and set the required environment variables. After that, from the command line prompt type \verb|docker-compose up| and wait for the process to finish. Note that it may take different minutes. Once the Docker Engine completes the process, the container with a working instance of RS\_Server will be ready. \emph{If the first startup of the application is being done} type also \verb|docker-compose run rake db:create| to create the database and \verb|docker-compose run rake db:migrate| to create the required tables inside it. RS\_Server will be started and bound on \verb|127.0.0.1| ip address with port \verb|3000| and \verb|production| environment. Therefore, every request must be sent to \verb|https://127.0.0.1:3000| address. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since the Docker Engine will take care of that. If you want to set a custom ip address or port or switch to the \verb|development| environent, edit the \verb|command| key inside \verb|docker-compose.yml| file. To shutdown and undeploy the container, simply type \verb|docker-compose down|.
+
+Next, from the command line prompt, type \verb|docker-compose up| and wait for the process to finish. Note that it may take several minutes. 
+Once the Docker Engine completes the process, a container with a working instance of \rsserver will be started and bound to the \verb|0.0.0.0| 
+IP address with port \verb|3000| and the \verb|production| environment. Therefore, every request must be sent to the \verb|http://0.0.0.0:3000| address.
+
+Similar to the previous scenario, there is no need to manually start the server by specifying its IP address, port, and environment or to create and migrate the database. If you want to set a custom IP address or port or switch to the production environment, edit the \verb|command| key inside the \verb|docker-compose.yml| file.
+
+To stop the container, simply type \verb|docker-compose down|.
 
 \paragraph{Quick Cheatsheet}
 
 \begin{itemize}
 \item \verb|cd| to main directory;
-\item create \verb|.env| file and set environment variables;
+\item create and populate the \verb|.env| file;
 \item \verb|docker-compose up|;
-\item \verb|docker-compose run rake db:create| (only at first startup);
-\item \verb|docker-compose run rake db:migrate| (only at first startup);
+\item \verb|docker-compose run rails db:seed| (optional);
 \item \verb|docker-compose down| (to shutdown and undeploy).
 \end{itemize}
 
-\subsubsection{3: Heroku Deploy}
+\subsubsection{Modality 3: Deploy on Heroku}
 
-This deploy modality allows to exploit the container registry of \emph{Heroku}  to perform a docker-based production-ready deploy of RS\_Server through a working installation of the \emph{Heroku Command Line Interface (CLI)}. Note that this modality can be used only if you choose to use RS\_Server in \emph{production} environment.
+\label{modality:3}
 
-Heroku is Platform-as-a-Service (PaaS) that enables developers to build, run, and operate applications entirely in the cloud. Regarding the requirements of this modality, an \emph{app} on Heroku must be created and \emph{provisioned} with two addons, namely \emph{PostgreSQL} for the database and \emph{SendGrid} for the mailing functionalities. Follow Heroku tutorials if you do not know it and its concepts. Also, a working installation of \emph{Docker Desktop CE (Community Edition)} on the machine used to perform the deploy is required.
+\emph{Heroku} is a cloud platform-as-a-service (PaaS) that simplifies building, deploying, and scaling web applications and services for developers. This deploy modality enables the use of its container registry for a Docker-based production-ready deployment of \rsserver on the platform, facilitated by the \verb|Heroku Command Line Interface (CLI)|.\footnote{\url{https://devcenter.heroku.com/articles/heroku-cli}} It's important to note that this modality can only be used with the \emph{production} environment of the application.
+
+Regarding the prerequisites for this modality, the developer must create an \verb|app| on Heroku and then provision it with two addons: \emph{PostgreSQL}\footnote{\url{https://elements.heroku.com/addons/heroku-postgresql}} for the database and one for mail-related functionalities, such as \emph{Twilio SendGrid}.\footnote{\url{https://elements.heroku.com/addons/sendgrid}} The Heroku tutorials provide a comprehensive overview 
+of the platform. Additionally, a working installation of \verb|Docker Desktop CE (Community Edition)| on the machine used for deployment is required.
 
 \subsubsubsection{Requirements}
 
 \begin{itemize}
 \item Heroku account;
-\item Heroku application (PostgreSQL + SendGrid Addons);
+\item Heroku application provisioned with:
+\begin{itemize}
+\item PostgreSQL addon;
+\item a mail-related addon such as Twilio SendGrid;
+\end{itemize}
 \item Heroku CLI;
 \item Docker Desktop CE (Community Edition);
 \end{itemize}
 
 \subsubsubsection{How To}
 
-Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and move inside the main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|; you should see a \verb|Dockerfile|. If you do not see it, please be sure to be in the main directory of the cloned repository. Before proceeding, \emph{be sure that your Docker Engine has been started up, otherwise the following commands will not work}. Log in to your Heroku account by typing \verb|heroku login| and insert your credentials. Next, log in to Heroku container registry by typing \verb|heroku container:login|. To build and upload your instance of RS\_Server type \verb|heroku container:push web --app your-app-name| and when the process terminates type \verb|heroku container:release web| to make it publicy accessible. Optionally, you can type \verb|heroku open| to open the browser and be redirected on the homepage of  \verb|your_app_name| application. To create and set up the database type \verb|heroku run rake db:create| and \verb|heroku run rake db:migrate|. As it can be seen, there is no need to start the server by specifing its ip address, port and environment, since Heroku (through the Docker Engine) will take care of that. Now, remember to set the required environment variables on your Heroku app as explained in section \ref{env-2}.
+Clone \rsserver repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} and navigate to the main directory using a command line prompt. Now, type \verb|ls| or \verb|dir|. You should see a \verb|Dockerfile|. If not, please ensure you are in the main directory of the cloned repository.
+
+Before proceeding, \emph{make sure that your Docker Engine is running}. Otherwise, the following commands will not work.
+
+Log in using your credentials by typing \verb|heroku login|. Next, log in to the Heroku container registry by typing \verb|heroku container:login|.
+
+To build and upload your instance of \rsserver using Docker, type
+\begin{verbatim}
+heroku container:push web --app your-app-name
+\end{verbatim}
+When the process completes, type \verb|heroku container:release web| to make it publicly accessible.
+
+Optionally, you can type \verb|heroku run rails db:seed| to seed some sample data in the database, and \verb|heroku open| to open the browser and be redirected to the homepage of the \verb|<your_app_name>| application.
+
+Similar to the previous modality, there is no need to manually start the server by specifying its IP address, port, and environment, or to create and migrate the database since Heroku (through the Docker Engine) will take care of that for you.
 
 \subsubsubsection{Quick Cheatsheet}
 
@@ -455,225 +556,376 @@ Clone RS\_Server repository \footnote{\url{https://github.com/Miccighel/Readerso
 \item \verb|cd| to main directory;
 \item \verb|heroku login|;
 \item \verb|heroku container:login|;
-\item \verb|heroku container:push web --app your-app-name|;
+\item \verb|heroku container:push web --app <your-app-name>|;
 \item \verb|heroku container:release web --app your-app-name|;
 \item \verb|heroku open --app your-app-name| (optional);
-\item \verb|heroku run rake db:migrate -e production --app your-app-name| (optional);
-\item \verb|heroku run rake db:seed -e production --app your-app-name| (optional);
-\item set environment variables on your Heroku app.
+\item set the environment variables on your Heroku app.
 \end{itemize}
 
 \subsubsection{Environment Variables}
 
-Regardless of the chosen deploy modality, there is the need to set some environment variables which cannot be checked into a repository as a safety measure. In Table \ref{env} each of these environment variables is described along with an explanation of where to set them on the basis of the chosen deploy modality/environment. 
+\label{env-vars}
 
-\begin{table}
-\centering
-\begin{threeparttable}
-\begin{tabular}{p{3.5cm}p{3cm}p{3cm}p{1.7cm}p{2cm}}
+Regardless of the chosen deployment modality, the developer must provide values for (at least a portion of) the \emph{environment variables}, as they cannot be checked into a repository due to safety reasons. In the following, each of these available variables is described 
+along with an explanation of which deployment modality requires their usage.
+
+\begin{longtable}{p{3.5cm}p{3.2cm}p{2.5cm}p{2cm}p{2.7cm}}
 \toprule
-\textbf{Env. Variable}  &\textbf{Description} & \textbf{Deploy Modality} & \textbf{Env.} & \textbf{Where} \\
+\textbf{Environment Variable}  &\textbf{Description} & \textbf{Deploy Modality} & \textbf{Environment} & \textbf{Where To Set} \\
 \midrule
-\verb|SECRET_DEV_KEY| & Private key used to encrypt some strings & 1 - 2 (Scenario 1, Scenario 2) & development & \verb|.env| file \\
-\verb|SECRET_PROD_KEY| & Private key used to encrypt some strings & 1 - 2 (Scenario 1, Scenario 2) - 3 & production & \verb|.env| file, Heroku App \\
-\verb|SENDGRID_USERNAME| & Username of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|SENDGRID_PASSWORD| & Password of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|SENDGRID_API_KEY| & API key of your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|SENDGRID_DOMAIN| & A domain registered within your SendGrid account & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|BUG_REPORT_MAIL| & An email address to receive bug reports & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|CONTACT_MAIL| & An email address to receive general questions & 1 - 2 (Scenario 1, Scenario 2) - 3 & development, production & \verb|.env| file, Heroku App \\
-\verb|RAILS_LOG_TO_STD| & If set to \verb|true|, Rails writes its logs to the standard output. Useful for debugging purposes. & 3 & production & \verb|.env| file, Heroku App \\
+\endhead
+\verb|SECRET_DEV_KEY| & Private key used to encrypt strings in the \verb|development| environment.  & 1 - 2 & \verb|development| & \verb|.env| file \\
+\midrule
+\verb|SECRET_PROD_KEY| & Private key used to encrypt strings in the \verb|production| environment. & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|POSTGRES_USER| & Username the admin user of the database & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|POSTGRES_PASSWORD| & Password of the admin user of the database & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|POSTGRES_DB| & Name of the database & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|POSTGRES_HOST| & Hosting address of the database & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|DATABASE_URL| & Full connection PostgreSQL connection string of the database. & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|SMTP_USERNAME| & Username of the SMTP mail server & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|SMTP_PASSWORD| & Password of the SMTP mail server & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|SMTP_DOMAIN_NAME| & Domain of the SMTP mail server & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|SMTP_DOMAIN_ADDRESS| & Full address of the SMTP mail server & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|EMAIL_BUG_REPORT| & Email address to receive bug reports & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|EMAIL_ADMIN| & Email address to receive general questions & 1 - 2 - 3 & \verb|development|, \verb|production| & \verb|.env| file, Heroku App \\
+\midrule
+\verb|RAILS_LOG_TO_STD| & When set to \verb|true|, forces the application to write its logs to the standard output. & 1 - 2 - 3 & \verb|production| & \verb|.env| file, Heroku App \\
 \bottomrule
-\end{tabular}
-\caption{Environment variables of RS\_Server.}
+\caption{Environment variables of \rsserver.}
 \label{env}
- \end{threeparttable}
-\end{table}
+\end{longtable}
 
-\subsubsubsection{\texttt{.env} file}
+\subsubsection{Setting Variables}
 
-\label{env-1}
+\label{set-var}
 
-To set an environment variable in a local \verb|.env| file, create it inside the main directory of RS\_Server and populate it in a \verb|key=value| fashion; Listing \ref{env-file} shows the content of a valid \verb|.env| file.
+To set an environment variable in a local \verb|.env| file, create it inside the main directory of \rsserver. Then, populate it in a \verb|key=value| fashion.
+To set an environment variable in a Heroku app, simply follow the guide.\footnote{\url{https://devcenter.heroku.com/articles/config-vars}} In Heroku terminology, environment variables are called \verb|config vars|.
+
+To provide an example, the following is the content of a valid \verb|.env| file.
 
 \begin{algorithm}[h]
-\caption{A valid \texttt{.env} file.}
+\caption{Content of a valid \texttt{.env} file.}
 \label{env-file}
 \begin{algorithmic}[1]
-\State$\text{SECRET\_DEV\_KEY=your\_secret\_dev\_key}$
-\State$\text{SENDGRID\_USERNAME=your\_sendgrid\_username}$
-\State$\text{SENDGRID\_PASSWORD=your\_sendgrid\_password}$
-\State$\text{SENDGRID\_DOMAIN=your\_sendgrid\_domain}$
-\State$\text{SENDGRID\_API\_KEY=your\_sendgrid\_secret\_api\_key}$
-\State$\text{BUG\_REPORT\_MAIL=your\_bug\_report\_mail}$
-\State$\text{CONTACT\_MAIL=your\_contact\_mail}$
+\State$\text{SECRET\_PROD\_KEY=your\_secret\_prod\_key\_value}$
+\State$\text{DATABASE\_URL=your\_postgresql\_database\_connection\_string}$
+\State$\text{SMTP\_USERNAME=your\_smtp\_username}$
+\State$\text{SMTP\_PASSWORD=your\_smtp\_password}$
+\State$\text{SMTP\_DOMAIN\_NAME=your\_smtp\_domain\_name}$
+\State$\text{SMTP\_DOMAIN\_ADDRESS=your\_smtp\_domain\_address}$
+\State$\text{EMAIL\_BUG\_REPORT=your\_bug\_report\_mail}$
+\State$\text{EMAIL\_ADMIN=your\_contact\_mail}$
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsubsection{Heroku App}
+\subsubsection{Sending Mails}
 
-\label{env-2}
+\rsserver supports any SMTP-based mail server to send emails for tasks such as confirming user registration, reporting bugs, or recovering forgotten passwords.
 
-To set an environment variable in an Heroku app, simply follow the guide provided by the platform.\footnote{\url{https://devcenter.heroku.com/articles/config-vars}} In Heroku terminology environment variables are called \emph{config vars}.
+Understanding the values used to populate the \verb|SMTP_| environment variables can sometimes lead to ambiguity. Let's consider the case of the proposed add-on, Twilio Sendgrid,\footnote{\url{https://sendgrid.com/}} both when deploying \rsserver manually and on Heroku.
+In the first case, after creating an account, you need to verify a single
+sender address or a whole domain using the provided \verb|DNS records|. To integrate the service into an instance of \rsserver deployed anywhere outside Heroku, you must use a supported SMTP configuration.\footnote{\url{https://app.sendgrid.com/guide/integrate/langs/smtp}} Thus, the values of the environment variables must be in this form:
+\begin{verbatim}
+SMTP_USERNAME: apikey
+SMTP_PASSWORD: <your_api_key_value>
+SMTP_DOMAIN_NAME: <your_domain_address>
+SMTP_DOMAIN_ADDRESS: smtp.sendgrid.net
+\end{verbatim}
+However, while using the addon provided by Heroku,\footnote{\url{https://elements.heroku.com/addons/sendgrid}} the values provided for the environment variables need to be slightly different:
+\begin{verbatim}
+SMTP_USERNAME: <your_sendgrid_account_username>
+SMTP_PASSWORD: <your_sengrid_password_account>
+SMTP_DOMAIN_NAME: <your_domain_address>
+SMTP_DOMAIN_ADDRESS: smtp.sendgrid.net
+\end{verbatim}
 
-\section{RS\_PDF}
+\subsubsection{Connecting To The Database}
+
+A full connection string to a PostgreSQL database provided through the \verb|DATABASE_URL| variable \emph{takes precedence} over each \verb|POSTGRES_| variable. It is thus important to provide the former environment variable or the set of the latter ones. This holds for both the \emph{development} and \emph{production} environments. Indeed, the final connection string is built as such:
+\begin{lstlisting}
+<%= ENV['DATABASE_URL'] || "postgresql://#{ENV['POSTGRES_USER'] || 'postgres'}:#{ENV['POSTGRES_PASSWORD']}@#{ENV['POSTGRES_HOST'] || 'localhost'}/#{ENV['POSTGRES_DB'] || 'rs_server'}" %>
+\end{lstlisting}
+
+\subsubsection{Logging To The Standard Output}
+
+An instance of \rsserver deployed in development writes its logs to the standard output as the default behavior. In a \emph{production} environment, on the other hand, the logs are written in the \verb|logs/production.log| file. Thus, forcing Rails to write logs in the standard output using the \verb|RAILS_LOG_TO_STD| variable can be useful for quick 
+debugging purposes when testing the production environment.
+
+\section{\rspdf}
 
 \label{rs-pdf}
 
-RS\_PDF \cite{RS-PDF} is the software library which is exploited by RS\_Server to actually edit the PDF files to add the URL required when a reader requests to save for later the publication that he is reading. 
-It is a software characterized by a command line interface and this means that RS\_Server can use it directly since they are deployed one along the other, without using complex communication channels and paradigms.    
+\rspdf \cite{RS-PDF} is the software library utilized by \rsserver to edit the PDF files and add the required URL when a reader requests to save a publication for later reading. 
+
+It is characterized by a command-line interface, allowing \rsserver to use it directly. Since they are deployed together, they can communicate without the need for complex channels and paradigms.
 
 \subsection{Implementation and Technology}
 
-The technology used to develop RS\_PDF is the Kotlin object-oriented programming language, whose main feature is to be fully compatible with the Java Virtual Machine. This feature is of great importance because it allows a developer to exploit code contained in any other software published in jar format and, more generally, to import any Java class, interacting with them through the syntax of Kotlin itself.
+The technology used to develop \rspdf is the Kotlin object-oriented programming language, known for its full compatibility with the Java Virtual Machine. This feature is crucial because it allows a developer to leverage code contained in any other software published in JAR format and, more generally, to import any Java class, interacting with them through the syntax of Kotlin itself.
 
-This programming language has been chosen because it has many modern features (it has been created just three years ago) and it is supported rather intensively; furthermore, there are openings to other platforms that have greatly expanded its use possibilities. The most important reason, however, is that the underlying tool used to actually edit files encoded in PDF format is PDFBox,\footnote{\url{https://pdfbox.apache.org/}} which is a software library  developed with Java and proposed as a complete toolkit to edit files in that specific format. So, RS\_PDF is a wrapper for PDFBox that adds the needed links inside the PDFs requested by readers. %takes advantage of the modern features of Kotlin to add a reference inside a publication that a reader requests to save for later and to achieve a better integration between the components of Readersourcing 2.0.
+This programming language has been chosen because it incorporates many modern features and receives robust support. Furthermore, it has openings to other platforms, greatly expanding its potential applications. The most significant reason, however, is that the underlying tool used to edit files encoded in PDF format is \emph{PDFBox},\footnote{\url{https://pdfbox.apache.org/}} a software library developed with Java and proposed as a complete toolkit for editing files in that specific format. Therefore, \rspdf serves as a wrapper for PDFBox, adding the necessary links inside the PDFs requested by readers.
 
-Kotlin has been created by JetBrains\footnote{\url{https://www.jetbrains.com/}} which, in the first half of 2017, signed an agreement with Google to let Kotlin become a first-class language for development on the Android platform\footnote{\url{https://blog.jetbrains.com/kotlin/2017/05/kotlin-on-android-now-official/}}. In the same year, moreover, Jetbrains announced the possibility to compile programs written in Kotlin directly into machine language, thus avoiding the use of the JVM. On the web is possible to find different pages with comparisons between Kotlin and other languages, including the official one\footnote{\url{https://kotlinlang.org/docs/reference/comparison-to-java.html}} made by JetBrains with Java, and several articles\footnote{\url{https://medium.com/@octskyward/why-kotlin-is-my-next-programming-language-c25c001e26e3}} of developers enthusiastic about this programming language.
+
+Kotlin has been created by JetBrains,\footnote{\url{https://www.jetbrains.com/}} which, in the first half of 2017, signed an agreement with Google to elevate Kotlin to the status of a first-class language for development on the Android platform.\footnote{\url{https://blog.jetbrains.com/kotlin/2017/05/kotlin-on-android-now-official/}} Moreover, in the same year, JetBrains announced the ability to compile programs written in Kotlin directly into machine language, thus avoiding the use of the JVM.
+
+On the web, it is possible to find different pages with comparisons between Kotlin and other languages, including the official one\footnote{\url{https://kotlinlang.org/docs/reference/comparison-to-java.html}} made by JetBrains with Java, and several articles\footnote{\url{https://medium.com/@octskyward/why-kotlin-is-my-next-programming-language-c25c001e26e3}} by developers enthusiastic about this programming language.
 
 \subsection{Package Diagram}
 
-Figure \ref{fig:package} shows a diagram of the packages in which RS\_PDF is divided. This is a useful diagram since it provides a high-level overview of the internal architecture of a software.
+Figure \ref{fig:package} depicts a diagram illustrating the packages in which \rspdf is divided. This diagram offers a high-level overview of the internal architecture of the software, providing valuable insights into its structure.
 
 \begin{figure}[!tbp]
 \centering
 \includegraphics[scale=0.7]{figures/package.png}
-\caption{Package diagram of RS\_PDF.}
+\caption{Package diagram of \rspdf.}
 \label{fig:package}
 \end{figure}
 
-In particular, the interaction with RS\_Server takes place within the package \textbf{program}. The server-side component itself can use the functionalities of RS\_PDF by executing it on the JVM, with a special set of command line options. Within this package, therefore, the parsing of the values received for each of these options and the management of the execution flow on the basis of these values take place.
+In particular, the interaction with \rsserver takes place within the \textbf{program} package. The server-side component itself can utilize the functionalities of \rspdf by executing it on the JVM with a special set of command-line options. Within this package, the parsing of the values received for each of these options and the management of the execution flow based on these values occur.
 
-The package \textbf{utils} has the task of providing useful tools to the remaining components of RS\_PDF. Inside it there are shared constants and methods that allow to access to the logging functionality. As it can be seen by looking at the diagram shown in Figure \ref{fig:package}, the other packages depend on it, in particular for some of the values of its constants.
+The \textbf{utils} package is responsible for providing useful tools to the remaining components of \rspdf. Within this package, shared constants and methods are implemented, enabling access to the logging functionality. As evident from the diagram in Figure~\ref{fig:package}, the other packages depend on it, particularly for some of the values of its constants.
 
-The package \textbf{publications} contains the business logic to handle files encoded in PDF format that must be edited. Its classes follow the logic of the MVC pattern, although its exploiting is not bound by the used technology as in the case of an application developed with Rails. There is, therefore, a Controller which takes into account the execution parameters analyzed in the package \textbf{program} and updates the internal state of one or more instances of the Model which will be as many as the files encoded in PDF format that must be annotated. This operation involves loading the input files and adding a link to RS\_Server on a new page, taking advantage of the functionalities of \emph{PDFBox}. As a last note, a View is not necessary because RS\_PDF simply stores the changes in a new PDF file and, then, ends its execution.
+The \textbf{publications} package contains the business logic to handle files encoded in PDF format that need to be edited. Its classes adhere to the logic of the MVC pattern, although its utilization is not bound by the technology used, as in the case of an application developed with Rails. Consequently, there is a Controller that takes into account the execution parameters analyzed in the \textbf{program} package and updates the internal state of one or more instances of the Model. The number of instances of the Model corresponds to the number of PDF files that must be annotated. This operation involves loading the input files and adding a link to \rsserver on a new page, leveraging the functionalities of PDFBox. As a final note, a View is not necessary because \rspdf simply stores the changes in a new PDF file and then concludes its execution.
 
 \subsection{Class Diagram}
 
-Figure \ref{fig:classi-2} shows a diagram of the main classes of RS\_PDF which details the internal structure of the architectural elements outlined into the diagram shown in Figure \ref{fig:package}. The classes contained within the package \textbf{publications} are structured in a way which is similar to what Rails forces in RS\_Server and most of the processing carried out by RS\_Rate takes place within them. The Model contains the connections with PDFBox and its methods exploit these connections to actually edit files encoded in PDF format. 
+Figure~\ref{fig:classi-2} displays a diagram of the main classes of \rspdf, providing detailed insights into the internal structure of the architectural elements outlined in the diagram shown in Figure~\ref{fig:package}. The classes within the \textbf{publications} package are structured similarly to what Rails enforces in \rsserver, with the majority of processing occurring within them. The Model establishes connections with PDFBox, and its methods leverage these connections to actively edit files encoded in PDF format.
 
-A single exception to this structure is the use of the \emph{Parameters} class; in particular, it is only a \emph{data class}, i.e. a class whose sole purpose is to store data of various kinds. This instance, once created, is sent to the Model by the Controller through the interfaces of the Model itself. If it is necessary to send further data, the only thing to do consists in adding them to the data class, thus avoiding modifying the signatures of the methods of the Model. Regarding the contents of the \emph{program} and \emph{utils} packages, there is not much else to add with respect to what was said during the description of the diagram shown in figure \ref{fig:package}.
+A notable exception to this structure is the use of the \emph{Parameters} class, which serves solely as a \emph{data class}—a class dedicated to storing various types of data. Once created, this instance is transmitted to the Model by the Controller through the interfaces of the Model itself. If additional data needs to be sent, it can be effortlessly added to the data class, thereby avoiding modifications to the signatures of the Model's methods. As for the contents of the \emph{program} and \emph{utils} packages, there isn't much more to add beyond what was discussed during the description of the diagram shown in Figure~\ref{fig:package}.
 
 \begin{figure}[!tbp]
 \centering
 \includegraphics[scale=0.55, angle=90]{figures/classi-2.png}
-\caption{Class diagram of RS\_PDF.}
+\caption{Class diagram of \rspdf.}
 \label{fig:classi-2}
 \end{figure}
 
 \subsection{Installation}
 
-RS\_PDF comes bundled with RS\_Server, so when the latter is deployed there is no need to manually install the former. Nevertheless, it is possible to use it independently; it is sufficient to download the published \verb|.jar| files from the release section of its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_PDF}} and place it somewhere on the filesystem.
+\rspdf comes bundled with \rsserver, eliminating the need for manual installation when deploying the latter. However, if you wish to use \rspdf 
+independently, you can simply download the attached \verb|.jar| files from the release section of the repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_PDF}} and place them anywhere on your filesystem.
 
 \subsubsection{Requirements}
 
 \begin{itemize}
-\item JRE (Java Runtime Environment) $>=$ 1.8.0;
+\item JDK (Java Development Kit) $==$ 11.0.19;
 \end{itemize}
 
 \subsubsection{Commmand Line Interface}
 
-The behavior of RS\_PDF is configured during its startup phase by RS\_Server through a set of special command-line options. For this reason, it is useful to provide a list of all the options that can be used if it is necessary to use RS\_PDF in other contexts, modify its implementation or for any other reason. However, it is designed to work with a default configuration if no options are provided. This list of command line options in shown in Table \ref{tab:cli}. 
+The behavior of \rspdf is configured during its startup phase by \rsserver through a set of special command-line options. For this reason, it is useful to provide a list of all the options that can be used if it is necessary to employ \rspdf in other contexts, modify its implementation, or for any other reason. However, it is designed to work with a default configuration if no options are provided. This list of command-line options is shown in Table~\ref{tab:cli}.
+
 \begin{table}
 \centering
 \begin{threeparttable}
-\begin{tabular}{p{1cm}p{2.4cm}p{3cm}p{3cm}p{1cm}p{1cm}}
+\begin{tabular}{p{1cm}p{3cm}p{3cm}p{3cm}p{2cm}p{2cm}}
 \toprule
-\textbf{Short}  &\textbf{Long} & \textbf{Description} & \textbf{Values} & \textbf{Req.} & \textbf{Deps.}  \\
+\textbf{Short} & \textbf{Long} & \textbf{Description} & \textbf{Values} & \textbf{Required} & \textbf{Depends On} \\
 \midrule
-\verb|--pIn| & \verb|--pathIn | & Path on the filesystem from which to load the PDF files to be edited. It can be a file or a folder. & String representing a relative path. & No & \verb|--pOut| \\
-\verb|--pOut| & \verb|--pathOut | & Path on the filesystem in which to save the edited PDF files. It must be a folder. & String representing a relative path. & No & \verb|--pIn| \\
-\verb|--c| & \verb|--caption | & Caption of the link to add. & Any string. & Yes & No \\
-\verb|--u| & \verb|--url | & Url to add. & A valid URL. & Yes & No \\
-\verb|--a| &  \verb|--authToken| & Authentication token received from RS\_Server. & A valid authentication token received RS\_Server. & No & \verb|--pOut| \verb|--pIn| \verb|--pId|\\
-\verb|--pId| &  \verb|--publicationId| & Identifier for a publication present on RS\_Server. & A valid publication identifier received from RS\_Server. & No & \verb|--pOut| \verb|--pIn| \verb|--a|\\
+\verb|--pIn| & \verb|--pathIn| & Path on the filesystem from which to load the PDF files to be edited. It can be a file or a folder. & String representing a relative path. & No & \verb|--pOut| \\
+\midrule
+\verb|--pOut| & \verb|--pathOut| & Path on the filesystem in which to save the edited PDF files. It must be a folder. & String representing a relative path. & No & \verb|--pIn| \\
+\midrule
+\verb|--c| & \verb|--caption| & Caption of the link to add. & Any string. & Yes & No \\
+\midrule
+\verb|--u| & \verb|--url| & URL to add. & A valid URL. & Yes & No \\
+\midrule
+\verb|--a| & \verb|--authToken| & Authentication token received from \rsserver. & A valid authentication token received from \rsserver. & No & \verb|--pOut|, \verb|--pIn|, \verb|--pId| \\
+\midrule
+\verb|--pId| & \verb|--publicationId| & Identifier for a publication present on \rsserver. & A valid publication identifier received from \rsserver. & No & \verb|--pOut|, \verb|--pIn|, \verb|--a| \\
 \bottomrule
 \end{tabular}
-\caption{Command line options of RS\_PDF.}
+\caption{Command line options of \rspdf.}
 \label{tab:cli}
- \end{threeparttable}
+\end{threeparttable}
 \end{table}
-To provide an execution example, let's assume a scenario in which there is the need of edit some files encoded in PDF format with the following prerequisites:
+
+To provide an execution example, let's assume a scenario where there is a need to edit some files encoded in PDF format with the following prerequisites:
+
 \begin{itemize}
-\item there is a folder containing $n$ files to edit at path \verb|C:\data|;
-\item the edited files must be saved inside a folder at path \verb|C:\out|;
-\item the file in JAR format containing the library is called \verb|RS_PDF-v1.0-alpha.jar|;
-\item the JAR file containing RS\_PDF is located inside the folder at path \verb|C:\lib|;
-\item the authentication token received from RS\_Server is \\ \verb|eyJhbGciOiJIUzI1NiJ9....XpC9PMXOjtjRd4NBCtB1a4SfBEi6ndgqsE3k_cEI6Wo|;
-\item the publication identifier received from RS\_Server is \verb|1|.
+    \item There is a folder containing $n$ files to edit at the path \verb|C:\data|;
+    \item The edited files must be saved inside a folder at the path \verb|C:\out|;
+    \item The file in JAR format containing the library is called \verb|RS_PDF-v1.0-alpha.jar|;
+    \item The JAR file containing \rspdf is located inside the folder at the path \verb|C:\lib|;
+    \item The authentication token received from \rsserver is \\
+    \verb|eyJhbGciOiJIUzI1NiJ9....XpC9PMXOjtjRd4NBCtB1a4SfBEi6ndgqsE3k_cEI6Wo|;
+    \item The publication identifier received from \rsserver is \verb|1|.
 \end{itemize}
-The execution of RS\_PDF is started with the following command:
+
+The execution of \rspdf is started with the following command:
+
 \begin{lstlisting}
 java -jar C:\lib\RS_PDF-v1.0-alpha.jar -pIn C:\data -pOut C:\out -a eyJhbGciOiJIUzI1NiJ9....XpC9PMXOjtjRd4NBCtB1a4SfBEi6ndgqsE3k_cEI6Wo -pId 1
 \end{lstlisting}
 
-\section{RS\_Rate}
+\section{\rsrate}
 
 \label{rs-rate}
 
-RS\_Rate \cite{RS-Rate} is an extension for \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} available on its store. It is a client for Readersourcing 2.0 that can be used by readers of publications to rate them directly from the browser without the need of using this web interface. We intend to generalize RS\_Rate by providing an implementation for each of the major browsers (i.e., Firefox, Safari, \dots).
+\rsrate~\cite{RS-Rate} is an extension designed to function as a client for the Readersourcing 2.0 ecosystem without requiring access to its website. Compatible with both \emph{Google Chrome}\footnote{\url{https://www.google.com/chrome/}} and \emph{Microsoft Edge},\footnote{\url{https://www.microsoft.com/en-us/edge/}} the extension allows users to rate publications directly from their browsers. This eliminates the need to navigate to the main website, streamlining the process of providing ratings for publications.
+
+The primary objective of \rsrate is to provide readers with a way to seamlessly rate a publication with minimal effort—just a few clicks or keystrokes within the Readersourcing 2.0 ecosystem, contributing to a more dynamic online reading experience. \rsrate serves as the initial client of our project, extending beyond the web-based interface available on the main portal.
+
+Looking ahead, our vision includes expanding the compatibility of \rsrate by developing implementations for other major browsers, such as Firefox, Safari, and other popular browsers. Our commitment is to make this rating tool accessible across a broad range of browsers, ensuring users can seamlessly interact with content and provide feedback, regardless of their preferred browser.
 
 \subsection{Implementation and Technology}
 
-RS\_Rate is an extension for Google Chrome; those extensions are developed using standard web technologies such as HTML, CSS and Javascript. Therefore, they are simple \lq\lq collections\rq\rq{} of files packaged in a CRX archive. This particular format is nothing more than a modified version of a ZIP archive with the addition of some special headers exploited by Google Chrome.
+\rsrate is an extension for Google Chrome and, consequently, also for Microsoft Edge. These extensions are developed using standard web technologies such as HTML, CSS, and JavaScript. Therefore, they are simple ``collections'' of files packaged in a CRX archive. This particular format is nothing more than a modified version of a ZIP archive with the addition of some special headers exploited by Google Chrome.
 
-As for the Javascript component, RS\_Rate does not actually uses the \lq\lq pure\rq\rq{} language but instead uses jQuery, a library developed with the aim of simplifying the selection, manipulation, management of events and the animation of DOM elements in HTML pages, as well as implementing AJAX features. These AJAX features are widely used by RS\_Rate to improve the user experience during its use.
+As for the JavaScript component, \rsrate does not actually use the ``pure'' language but instead employs jQuery, a library developed with the aim of simplifying the selection, manipulation, management of events, and the animation of DOM elements in HTML pages. It also implements AJAX features. These AJAX features are widely utilized by \rsrate to enhance the user experience during its use.
 
 \subsection{Installation}
 
-RS\_Rate is freely available on the main browsers webstores. To use it, simply take advantage of the following links and install the version for your favourite browser.
+\rsrate is freely available on the Google Chrome Web Store. To use it, simply take advantage of the following link and install the currently available version by clicking on the ``Get'' button shown on the store page. We plan to release a Firefox version in the future.
 \begin{itemize}
-\item \textbf{Google Chrome} version available at: \url{https://chrome.google.com/webstore/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg?hl=it};
-\item \textbf{Firefox} version available at: \emph{currently disabled, will be available at a later time}.
+\item \textbf{Google Chrome} version available at: \url{https://chrome.google.com/webstore/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg?hl=it}
 \end{itemize}
-
-\section{RS\_Py}
-
-\label{rs-py}
-
-RS\_Py \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem which provides a fully-working implementation of the models presented by \citet{Soprano2019} which are incapsulated by the server-side application of Readersourcing 2.0 described in Section \ref{rs-server}. Developers with a background in Python programming language can take advantage of RS\_Py to generate and test new simulations of ratings given by readers to a set of publications and they are allowed to alter the internal logic of the models to test new approaches without the need to fork and edit the full implementation of Readersourcing 2.0.
-
-\subsection{Implementation and Technology}
-
-RS\_Py is a collection of \emph{Jupyter Notebooks}. Jupyter\footnote{\url{https://jupyter.org/}} is a Python-powered\footnote{\url{https://www.python.org/}} open-source web application that allows to create and share documents that contain live code, equations, visualizations and narrative text. Notebooks can be shared with others and are made of cells that can be run indepently of each other which provide a step-by-step overview to the implemented computations. 
-
-\subsection{Installation}
-
-To use RS\_Py notebooks it is sufficient to clone its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} and place it somewhere on the filesystem. Be sure to install the required Python packages by taking advantage of a distribution like Anaconda\footnote{\url{https://www.anaconda.com/distribution/}}. If a lightweight installation is preferred, an instance of Python $3.7.3$ is needed to install the required packages like Jupyter, Pandas and others.
 
 \subsection{Usage}
 
-RS\_Py is organized into five main folders on the filesystem:
+Figure~\ref{fig:ux-1} illustrates a section of a Google Chrome instance with the extension active for a publication. This scenario depicts the typical situation of a reader visiting a publisher's website to access the PDF of a paper they are interested in. The figure also displays the initial page that a reader encounters when interacting with the client. This page serves as a gateway to the login page, as shown in Figure~\ref{fig:login}, or to the sign-up page. From the login page, a reader who has forgotten their password can access the password recovery page (not shown), which closely resembles the login page.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figures/ux-1.png}
+\caption{\rsrate characterized as an extension having a popup action.}
+\label{fig:ux-1}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/login.png}
+\caption{The login page of \rsrate.}
+\label{fig:login}
+\end{figure}
+
+If a reader has yet to sign up for Readersourcing 2.0, they can navigate from the page shown in Figure~\ref{fig:ux-1} to the one displayed in Figure~\ref{fig:signup} and fill in the sign-up form. Once they complete the standard sign-up and login operations, they will find themselves on the rating page, as shown in Figure~\ref{fig:rating-1}.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/rating-2.PNG}
+\caption{The rating page of \rsrate.}
+\label{fig:rating-1}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/signup.PNG}
+\caption{The user registration page of \rsrate.}
+\label{fig:signup}
+\end{figure}
+
+
+In the central section of the rating page, a reader can use the slider to choose a rating value in a 0-100 interval. Once they select the desired rating, they only need to click the green \emph{Rate} button, and that's it; with just three clicks and a slide action, they can submit their rating. Furthermore, they can also click the options button and, if preferred, check an option to anonymize the rating they are about to provide. It's important to note that the reader has to be logged in to express an anonymous rating to prevent spamming, which in this case would be a very dangerous phenomenon. When such a rating is processed, the information regarding its reader will not be used, except for preventing the reader from rating the same publication multiple times.
+
+If the reader prefers to provide their rating at a later time instead of immediately rating the publication, they can click the \emph{Save for later} button. This option allows them to take advantage of the editing procedure for publications, which stores a reference (an URL link) inside the PDF file they are viewing. As soon as such the editing procedure is completed (usually just a few seconds), the \emph{Save for later} button transforms into a \emph{Download} button, as shown in Figure~\ref{fig:rating-2}.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/rating.PNG}
+\caption{The rating page of \rsrate after a \lq\lq save for later\rq\rq{} request.}
+\label{fig:rating-2}
+\end{figure}
+
+The reader can finally download the link-annotated publication by clicking on it. Furthermore, they can also use the refresh button (located to the right of the \emph{Download} button) to, as it says, refresh the link-annotated publication. This means that a new copy of the publication file will be downloaded, annotated, and made available to the reader. This feature is useful since a publication could be updated at a later time by its author.
+
+As soon as the link-annotated publication is downloaded, the reader will find a PDF containing a new final page with the URL. In Figure~\ref{fig:reference}, an example of such a link-annotated publication can be seen; in that case, the reader has chosen to open it with their favorite PDF reader.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figures/reference.png}
+\caption{A publication link-annotated through \rsrate.}
+\label{fig:reference}
+\end{figure}
+
+Once the reader clicks on the reference, which is a special link to \rsserver, they will be taken to the server-side application itself. The interface presented allows them to express their rating independently of the browser extension used to store the reference. Therefore, if they send their link-annotated publication to a tablet-like device, for example, they can take advantage of the built-in browser to express their rating. Figure~\ref{fig:browser} shows the interface that the reader sees after clicking on the stored reference. The reader is required to authenticate themselves again as a form of security. Without this step, the stored reference could be used by anyone who gets a copy of the link-annotated publication.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/browser.png}
+\caption{The server-side interface to rate a publication.}
+\label{fig:browser}
+\end{figure}
+
+Every time a reader rates a publication, every score is updated according to both RSM and TRM models, and each reader can see the result through \rsrate. In the bottom section of the rating page, the score of the current publication can be seen (one for each model), as shown in Figures~\ref{fig:rating-1} and~\ref{fig:rating-2}. To view their score as a reader (once again, one for each model), a user must click the profile button in the upper right corner. Once they do that, they will see the interface shown in Figure~\ref{fig:profile}. From there, they can also edit their password since that interface acts as a profile page.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7]{figures/profile.png}
+\caption{The profile page of \rsrate.}
+\label{fig:profile}
+\end{figure}
+
+\section{\rspy}
+
+\label{rs-py}
+
+\rspy \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem, providing a fully working implementation of the models presented by \citet{Soprano2019}. These models are encapsulated by the server-side application of Readersourcing 2.0, as described in Section~\ref{rs-server}. 
+
+Developers with a background in the Python programming language can leverage \rspy to generate and test new simulations of ratings given by readers to a set of publications. They are allowed to alter the internal logic of the models to test new approaches without the need to fork and edit the full implementation of Readersourcing 2.0.
+
+\subsection{Implementation and Technology}
+
+\rspy is a collection of \emph{Jupyter Notebooks}. Jupyter\footnote{\url{https://jupyter.org/}} is a Python-powered\footnote{\url{https://www.python.org/}} open-source web application that allows the creation and sharing of documents containing live code, equations, visualizations, and narrative text. Notebooks can be shared with others and are composed of cells that can be run independently, providing a step-by-step overview of the implemented computations.
+
+\subsection{Installation}
+
+To use \rspy notebooks, it is sufficient to clone its repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} and place it somewhere on the filesystem. Ensure that the required Python packages are installed by leveraging a distribution such as Anaconda\footnote{\url{https://www.anaconda.com/distribution/}}. If a lightweight installation is preferred, an instance of Python 3.7.3 or higher is needed to install the required packages, such as Jupyter, Pandas, and others.
+
+\subsection{Usage}
+
+\rspy is organized into five main folders on the filesystem:
+
 \begin{itemize}
-\item the \verb|data| folder is used to store the dataset exploited to test the models presented by \citet{Soprano2019};
-\item the \verb|models| folder is used to store the output of such models;
-\item the \verb|notebooks| folder contains the jupyter notebooks used to generate new datasets and to implement the models presented by \citet{Soprano2019};
-\item the \verb|scripts| folder contains implementations of the jupyter notebooks as pure Python scripts;
-\item the \verb|src| folder contains a Python scripts which converts jupyter notebooks into pure Python scripts. 
+    \item The \verb|data| folder is used to store the dataset exploited to test the models presented by \citet{Soprano2019}.
+    \item The \verb|models| folder is used to store the output of these models.
+    \item The \verb|notebooks| folder contains Jupyter notebooks used to generate new datasets and implement the models presented by \citet{Soprano2019}.
+    \item The \verb|scripts| folder contains implementations of the Jupyter notebooks as pure Python scripts.
+    \item The \verb|src| folder contains a Python script which converts Jupyter notebooks into pure Python scripts.
 \end{itemize}
 
-Within the \verb|notebooks| folder there are three jupyter notebooks. \verb|Readersourcing.ipynb| provides an implementation of the RSM model presented by \citet{Soprano2019} while \verb|TrueReview.ipynb| provides an implementation of the TRM one. Lastly, the \verb|Seeder.ipynb| notebook allows to generate new datasets, which will be stored inside the \verb|data| folder. Inside the \verb|src| folder the \verb|Convert.py| script allows to convert the notebooks in Python scripts which are then stored inside the \verb|scripts| folder. 
+Within the \verb|notebooks| folder, three Jupyter notebooks are available:
 
-The behavior of \verb|Seeder.ipynb| and \verb|Readersourcing.ipynb| notebooks can be edited by taking advantage of the parameter setting section which is located in the first rows of both notebooks. Table \ref{tab:seeder-notebook} shows the parameters available for the former, while Table \ref{tab:readersourcing-notebook} shows the parameters available for the latter. 
+\begin{itemize}
+    \item \verb|Readersourcing.ipynb| provides an implementation of the RSM model presented by \citet{Soprano2019}.
+    \item \verb|TrueReview.ipynb| offers an implementation of the TRM model.
+    \item The \verb|Seeder.ipynb| notebook allows the generation of new datasets, which will be stored inside the \verb|data| folder.
+\end{itemize}
 
-To run and use the jupyter notebooks move inside the main directory of RS\_Py using a command line prompt (with an \verb|ls| or \verb|dir| command you should see \verb|data|, \verb|models|, \verb|notebooks|, etc. folders) and type \verb|jupyter notebook|\footnote{\url{https://jupyter.readthedocs.io/en/latest/running.html\#running}}. This command will start the Jupyter server and you will be able to take advantage of the \emph{Notebook Dashboard} within your browser at the url of the web application (by default, \verb|http://localhost:8888|).
+Inside the \verb|src| folder, the \verb|Convert.py| script enables the conversion of notebooks into Python scripts, and these are then stored inside the \verb|scripts| folder.
+
+The behavior of \verb|Seeder.ipynb| and \verb|Readersourcing.ipynb| notebooks can be customized by modifying the parameter settings found in the initial rows of both notebooks. Table~\ref{tab:seeder-notebook} outlines the parameters available for the former, while Table~\ref{tab:readersourcing-notebook} presents the parameters for the latter.
+
+To run and use the Jupyter notebooks, navigate to the main directory of \rspy using a command-line prompt (you should see folders such as \verb|data|, \verb|models|, \verb|notebooks|, etc.) and type \verb|jupyter notebook|.\footnote{\url{https://jupyter.readthedocs.io/en/latest/running.html\#running}} This command will start the Jupyter server, and you can access the \emph{Notebook Dashboard} in your browser at the web application's URL (typically, \verb|http://localhost:8888|).
 
 \begin{table}
 \centering
 \begin{tabular}{p{3cm}p{7cm}p{3cm}}
 \toprule
-\textbf{Parameter}  & \textbf{Description} & \textbf{Values} \\
+\textbf{Parameter} & \textbf{Description} & \textbf{Values} \\
 \midrule
 \verb|dataset_name| & Name of the dataset to simulate & String \\
-\verb|papers_number| &  Number of papers to simulate & Positive integer \\
-\verb|readers_number| &  Number of readers to simulate & Positive integer \\
-\verb|authors_number| &  Number of authors to simulate & Positive integer \\
-\verb|months_number| &  Number of months of activity to simulate & Positive integer \\
-\verb|paper_frequencies| &  Amount of papers rated by each reader group & Array of positive integers \\
-\verb|readers_percent| & Percentual of readers to assign to a single group & Positive integer\\
+\verb|papers_number| & Number of papers to simulate & Positive integer \\
+\verb|readers_number| & Number of readers to simulate & Positive integer \\
+\verb|authors_number| & Number of authors to simulate & Positive integer \\
+\verb|months_number| & Number of months of activity to simulate & Positive integer \\
+\verb|paper_frequencies| & Amount of papers rated by each reader group & Array of positive integers \\
+\verb|readers_percent| & Percentage of readers to assign to a single group & Positive integer\\
 \bottomrule
 \end{tabular}
-\caption{Parameters available for the Seeder jupyter notebook.}
+\caption{Parameters available for the Seeder Jupyter notebook.}
 \label{tab:seeder-notebook}
 \end{table}
 
@@ -681,20 +933,35 @@ To run and use the jupyter notebooks move inside the main directory of RS\_Py us
 \centering
 \begin{tabular}{p{5cm}p{5.5cm}p{2.5cm}}
 \toprule
-\textbf{Parameter}  & \textbf{Description} & \textbf{Values} \\
+\textbf{Parameter} & \textbf{Description} & \textbf{Values} \\
 \midrule
 \verb|dataset_name| & Name of the dataset to simulate & String \\
-\verb|day_serialization| & Activate serialization of data on a per day basis & True, False \\
+\verb|day_serialization| & Activate serialization of data on a per-day basis & True, False \\
 \verb|day_serialization_threshold| & Serialize data every X days & Positive integer \\
 \verb|days_number| & Amount of days simulated in the input dataset & Positive integer \\
 \bottomrule
 \end{tabular}
-\caption{Parameter available for the Readersourcing jupyter notebook.}
+\caption{Parameters available for the Readersourcing Jupyter notebook.}
 \label{tab:readersourcing-notebook}
 \end{table}
 
+\section{Overview}
+
+\label{overview}
+
+An overview of Readersourcing 2.0 capabilities is shown in Figure~\ref{fig:scenario}. Let us suppose that there are four readers using \rsrate to rate a publication, \verb|P1|, namely \verb|RD1|, \verb|RD2|, \verb|RD3|, and \verb|RD4|. Both \verb|RD1|, \verb|RD2|, and \verb|RD3| utilize the \emph{Save for later} functionality of \rsrate to express their ratings at a later time. By doing this, they receive a link-annotated version of \verb|P1|, namely \verb|P1+Link|. 
+
+After some time, \verb|RD1| chooses to open \verb|P1+Link| with his favorite PDF reader. \verb|RD2|, instead, sends it to his tablet, while \verb|RD3| simply opens it with his instance of Google Chrome. When they click on the URL added by \rsserver, they are taken to the special page provided by \rsserver where they provide their ratings. On the contrary, \verb|RD4| simply chooses to give his rating as soon as he finishes reading \verb|P1| directly through the \rsrate interface.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figures/scenario.png}
+\caption{Readers' interaction modalities with the Readersourcing 2.0 ecosystem.}\label{fig:scenario}
+\end{figure}
+
 \newpage
 
+\nocite{*}
 \printbibliography[heading=bibintoc]
 
 \end{document}

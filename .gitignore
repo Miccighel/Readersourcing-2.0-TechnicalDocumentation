@@ -1,0 +1,42 @@
+# LaTeX generated files
+*.aux
+*.log
+*.dvi
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# TeXShop auxiliary files
+*.synctex.gz(busy)
+
+# LaTeX editor temporary files
+.vscode
+*.swp
+*.bak
+*.backup
+*~
+
+# LaTeX auto-generated files
+/_minted-*
+
+# LaTeX build directories
+_build/
+out/
+build/
+
+# LaTeX document output
+*.pdf
+*.ps
+*.dvi
+
+# OS generated files
+.DS_Store
+Thumbs.db
