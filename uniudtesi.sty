@@ -18,7 +18,8 @@ bookmarksopenlevel=2,
 pdftitle=Readersourcing 2.0 - Technical Documentation,
 pdfauthor=Michael Soprano,
 pdfsubject=Readersourcing 2.0 - Technical Documentation,
-pdfkeywords=crowdsourcing peer-review scholarly-publishing}
+pdfkeywords=crowdsourcing peer-review scholarly-publishing,
+hidelinks}
 
 \newcommand{\@facolta}{?}
 \newcommand{\@dipartimento}{Matematica e Informatica}
@@ -39,6 +40,7 @@ pdfkeywords=crowdsourcing peer-review scholarly-publishing}
 \newcommand{\@dedica}{?}
 \newcommand{\@responsabile}{?}
 \newcommand{\@nomeprogetto}{\quad}
+\newcommand{\@versioneprogetto}{}
 
 \newcommand{\facolta}[1]{%
   \renewcommand{\@facolta}{#1}}
@@ -83,6 +85,8 @@ pdfkeywords=crowdsourcing peer-review scholarly-publishing}
   \renewcommand{\@responsabile}{Responsabile: #1}}
 \newcommand{\nomeprogetto}[1]{%
   \renewcommand{\@nomeprogetto}{#1}}
+\newcommand{\versioneprogetto}[1]{%
+  \renewcommand{\@versioneprogetto}{#1}}
 \newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}%
   \cleardoublepage}}
 
@@ -149,7 +153,7 @@ pdfkeywords=crowdsourcing peer-review scholarly-publishing}
 
   \medskip
   
-  v1.0.15\\
+  \@versioneprogetto\\
   \end{center}
   \end{large}
 \end{sffamily}
