@@ -1,10 +1,12 @@
 <h1>Info</h1>
 
-This is the official repository for the technical documentation of the Readersourcing 2.0 ecosystem. The repository is a <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">Git submodule</a> of the main project.
+This is the official repository for the technical documentation of the Readersourcing 2.0 ecosystem. The repository is a <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">Git submodule</a> of the main project, which can be found by following the links below.
 
 <h1>Description</h1>
 
-The documentation describes the scientific context, domain model, object-oriented architecture, communication contracts, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py. The Readersourcing domain concepts and the Strategy-based implementation of its models provide the common design foundation across the ecosystem.
+This **technical documentation** provides an in-depth overview of the Readersourcing 2.0 ecosystem, offering detailed insights into each of its components. Whether you are a developer or user, this documentation serves as a comprehensive resource to understand the architecture and functionalities of the Readersourcing 2.0 ecosystem.
+
+The current edition also records the verified software requirements, communication interfaces, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py.
 
 <h1>Build</h1>
 

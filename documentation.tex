@@ -202,7 +202,6 @@ breaklines=true
 
 \titolo{Readersourcing 2.0:\\ Documentation}
 \nomeprogetto{MICHAEL SOPRANO AND STEFANO MIZZARO}
-\versioneprogetto{v2.0.0}
 
 \begin{document}
 
@@ -229,15 +228,13 @@ breaklines=true
 \section{Introduction}
 
 
-The Readersourcing 2.0 ecosystem was built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and the University of Udine.\footnote{\url{https://www.uniud.it/}} It was presented by \citet{Soprano2019} during the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The original paper is also available on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and related documentation are available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
+The Readersourcing 2.0 ecosystem has been built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and University of Udine.\footnote{\url{https://www.uniud.it/}} It has been presented by \citet{Soprano2019} during the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The paper can also be found on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and the related documentation are available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
 
-This documentation describes the software stack, domain concepts, equations, object-oriented responsibilities, and public communication contracts of Readersourcing 2.0. It distinguishes the deployed application from the experimental implementations used to study the model. Evaluations based on simulations and network analysis are discussed by \citet{Soprano2019HITS} and \citet{Soprano2025}.
-
-Initially, a recap of the general architecture is presented, followed by a description of the role and purpose of each component. Specific aspects, such as the technology used, the internal architecture, and the structure of the database, are also discussed. The diagrams adhere to UML where specified and follow the notation guidelines proposed by \citet{Fowler03}.
+Initially, a recap of its general architecture is presented, followed by a brief description of the role and purpose of each of its components. Specific aspects, such as the technology used, the internal architecture, and the structure of the database, are also discussed. This is achieved through different types of diagrams adhering to the UML standard unless otherwise specified, drawn according to the style rules proposed by \citet{Fowler03}. The current software requirements and operational procedures are recorded alongside the original architectural description.
 
 \section{General Architecture}
 
-Readersourcing 2.0 is composed of several cooperating components. \rsserver \cite{RS-Server} (Section~\ref{rs-server}) gathers ratings and exposes both the application workflows and their RESTful interfaces. \rsrate \cite{RS-Rate} (Section~\ref{rs-rate}) is the browser client used by readers. \rspdf \cite{RS-PDF} (Section~\ref{rs-pdf}) is a command-line component, distributed as a self-contained shaded JAR and bundled with \rsserver, which annotates publications with a rating URL and QR code. Finally, \rspy (Section~\ref{rs-py}) provides notebook-based implementations and experiments related to the RSM and TRM models described by \citet{Soprano2019}.
+Readersourcing 2.0 is an ecosystem composed of more than one component. Specifically, it includes \rsserver \cite{RS-Server} (presented in Section~\ref{rs-server}), which acts as a server to gather all the ratings given by readers, and \rsrate \cite{RS-Rate} (presented in Section~\ref{rs-rate}), which acts as a client, enabling readers to rate publications. Although all operations can be carried out directly on the web interface provided by \rsserver, another component, \rspdf \cite{RS-PDF} (presented in Section~\ref{rs-pdf}), is responsible for annotating PDF files with a rating URL and QR code. This component is utilized by the server-side application. Additionally, \rspy (presented in Section~\ref{rs-py}) provides a fully working Python implementation of the RSM and TRM models described by \citet{Soprano2019}, together with the notebooks used to generate datasets and analyze experiments.
 
 Figure~\ref{fig:architecture} provides an overview of the architecture of Readersourcing 2.0, and in the following, we briefly describe these four components. We summarize the capabilities of the ecosystem in Section~\ref{overview}.
 
@@ -252,16 +249,10 @@ Figure~\ref{fig:architecture} provides an overview of the architecture of Reader
 
 \label{rs-server}
 
-\rsserver \cite{RS-Server} is the server-side component that collects and aggregates ratings and uses the RSM and TRM models described by \citet{Soprano2019} to compute quality scores for readers and publications. A compatible \rspdf executable is shipped in the \verb|lib| directory and is invoked as a local process when a publication must be annotated.
-There may be up to \emph{n} browsers and end-users communicating with the server, each through an instance of \rsrate. The extension is distributed for Chromium-based browsers and Firefox.
+\rsserver \cite{RS-Server} is the server-side component that has the task of collecting and aggregating the ratings given by readers and using the RSM and TRM models described by \citet{Soprano2019} in order to compute quality scores for readers and publications. An instance of \rsserver is deployed along with a compatible \rspdf executable, which is shipped in the \verb|lib| directory and invoked as a local process when a publication must be annotated.
+Then, there can be up to \emph{n} different browsers along with their end-users communicating with the server, each of them characterized by an instance of \rsrate. The extension is distributed for Chromium-based browsers and Firefox.
 
 This setup facilitates interactions between readers and the server through clients installed on readers' browsers or by utilizing the stand-alone web interface provided by \rsserver. These clients are responsible for managing the registration and authentication of readers, handling rating actions, and managing the download actions of link-annotated publications.
-
-\subsection{Scientific Model and Deployed Application}
-
-The scientific model, the simulation code, and the deployed application share the same Readersourcing vocabulary but have different scopes. The \rsserver domain contains three persistent entities---users, publications, and ratings---and applies the RSM strategy before the TRM strategy when processing a rating. Experimental repositories may introduce additional entities, such as explicit authors, or evaluate alternative simulation assumptions without changing the server domain.
-
-The domain behavior is defined by the strategy abstraction, score computation order, database associations, routes, and JSON contracts. Frameworks, build systems, browser manifests, and deployment tooling provide the infrastructure around this domain model.
 
 During the design phase of \rsserver, strategies were adopted to ensure extensibility and generality. This includes: 
 \begin{enumerate}[label=(\roman*)]
@@ -738,15 +729,15 @@ Development writes logs to standard output by default. In production, setting \v
 
 \label{rs-pdf}
 
-\rspdf \cite{RS-PDF} is the command-line component used by \rsserver to edit PDF files when a reader requests to save a publication for later reading. It appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field.
+\rspdf \cite{RS-PDF} is the software library utilized by \rsserver to edit PDF files and add the required URL when a reader requests to save a publication for later reading. The current implementation appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field.
 
-The executable is distributed as the self-contained \verb|RS_PDF-v2.0.0-shaded.jar| and bundled in the \rsserver \verb|lib| directory. \rsserver invokes it as a local Java process, so no separate network service or protocol is required between the two components.
+It is characterized by a command-line interface, allowing \rsserver to use it directly. Since the components are deployed together, they can communicate without the need for complex channels and paradigms. The executable is distributed as the self-contained \verb|RS_PDF-v2.0.0-shaded.jar| and bundled in the \rsserver \verb|lib| directory.
 
 \subsection{Implementation and Technology}
 
-The technology used to develop \rspdf is the Kotlin object-oriented programming language, known for its compatibility with the Java Virtual Machine. The build targets Java 21 and uses Kotlin 2.4, Apache PDFBox 3 for PDF manipulation, Apache Commons CLI for argument parsing, Log4j 2 for logging, and ZXing for QR-code generation.
+The technology used to develop \rspdf is the Kotlin object-oriented programming language, known for its full compatibility with the Java Virtual Machine. This feature is crucial because it allows a developer to leverage code contained in other software published in JAR format and, more generally, to import Java classes and interact with them through Kotlin itself. The current build targets Java 21 and uses Kotlin 2.4.
 
-Kotlin was chosen because it provides modern object-oriented language features while interoperating directly with Java libraries. The underlying PDF toolkit is \emph{PDFBox},\footnote{\url{https://pdfbox.apache.org/}} while ZXing\footnote{\url{https://github.com/zxing/zxing}} produces the QR code placed beside the link annotation.
+This programming language was chosen because it incorporates many modern features and receives robust support. The most significant reason, however, is that the underlying tool used to edit files encoded in PDF format is \emph{PDFBox},\footnote{\url{https://pdfbox.apache.org/}} a software library developed with Java and proposed as a complete toolkit for editing files in that format. Therefore, \rspdf serves as a wrapper for PDFBox, adding the required reference inside the PDFs requested by readers. ZXing\footnote{\url{https://github.com/zxing/zxing}} generates the QR code placed beside the link annotation, Apache Commons CLI parses the execution parameters, and Log4j 2 provides logging.
 
 
 Kotlin has been created by JetBrains,\footnote{\url{https://www.jetbrains.com/}} which, in the first half of 2017, signed an agreement with Google to elevate Kotlin to the status of a first-class language for development on the Android platform.\footnote{\url{https://blog.jetbrains.com/kotlin/2017/05/kotlin-on-android-now-official/}} Moreover, in the same year, JetBrains announced the ability to compile programs written in Kotlin directly into machine language, thus avoiding the use of the JVM.
@@ -900,26 +891,26 @@ java -jar C:\lib\RS_PDF-v2.0.0-shaded.jar \
 
 \label{rs-rate}
 
-\rsrate~\cite{RS-Rate} is a browser extension that acts as a client for the Readersourcing 2.0 ecosystem without requiring users to navigate to its website first. Its Manifest V3 codebase produces separate self-contained builds for Chromium-based browsers, including Google Chrome\footnote{\url{https://www.google.com/chrome/}} and Microsoft Edge,\footnote{\url{https://www.microsoft.com/en-us/edge/}} and for Mozilla Firefox.\footnote{\url{https://www.mozilla.org/firefox/}}
+\rsrate~\cite{RS-Rate} is an extension designed to function as a client for the Readersourcing 2.0 ecosystem without requiring access to its website. Compatible with Google Chrome,\footnote{\url{https://www.google.com/chrome/}} Microsoft Edge,\footnote{\url{https://www.microsoft.com/en-us/edge/}} and Mozilla Firefox,\footnote{\url{https://www.mozilla.org/firefox/}} the extension allows users to rate publications directly from their browsers. This eliminates the need to navigate to the main website, streamlining the process of providing ratings for publications.
 
 The primary objective of \rsrate is to provide readers with a way to seamlessly rate a publication with minimal effort—just a few clicks or keystrokes within the Readersourcing 2.0 ecosystem, contributing to a more dynamic online reading experience. \rsrate serves as the initial client of our project, extending beyond the web-based interface available on the main portal.
 
-The two targets share the same application source and domain workflow. Browser-specific manifests and build output isolate platform requirements without duplicating the rating logic. Safari and other browser families remain possible future targets.
+Looking ahead, our vision includes expanding the compatibility of \rsrate to Safari and other popular browsers. Our commitment is to make this rating tool accessible across a broad range of browsers, ensuring users can seamlessly interact with content and provide feedback regardless of their preferred browser. The current Chromium and Firefox targets share the same application source and rating logic.
 
 \subsection{Implementation and Technology}
 
-\rsrate is developed with standard web technologies: HTML, CSS, and JavaScript. Its dependencies remain declared in \verb|package.json| and resolved through the committed Yarn lockfile. The build process copies and checks all executable assets locally, then produces unpacked Manifest V3 extensions in \verb|dist/chromium| and \verb|dist/firefox|. Store archives are generated from those outputs rather than treating CRX as the only distribution format.
+\rsrate is an extension for Google Chrome, Microsoft Edge, and Mozilla Firefox. These extensions are developed using standard web technologies such as HTML, CSS, and JavaScript. They are collections of files packaged according to the requirements of each browser. The build process copies and checks all executable assets locally, then produces unpacked Manifest V3 extensions in \verb|dist/chromium| and \verb|dist/firefox|.
 
-The JavaScript implementation uses jQuery for DOM manipulation and asynchronous API requests. Bootstrap 4 and its jQuery-based plugins provide the markup and interaction behavior used by the extension views.
+As for the JavaScript component, \rsrate does not use only the pure language but also employs jQuery, a library developed to simplify the selection and manipulation of DOM elements, event management, animations, and AJAX operations. These AJAX features are widely utilized by \rsrate to enhance the user experience. Bootstrap 4 and its jQuery-based plugins provide the markup and interaction behavior used by the extension views. Dependencies remain declared in \verb|package.json| and are resolved through the committed Yarn lockfile.
 
 \subsection{Installation}
 
-\rsrate is freely available on the Google Chrome Web Store. The Chromium release can be installed from the following page:
+\rsrate is freely available on the Google Chrome Web Store. To use it with a Chromium-based browser, simply follow the link and install the currently available version from the store page:
 \begin{itemize}
 \item \textbf{Google Chrome and Microsoft Edge}: \url{https://chromewebstore.google.com/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg}
 \end{itemize}
 
-The Firefox Manifest V3 package uses the following stable Gecko identifier:
+The repository also produces a Firefox Manifest V3 package ready for local validation and submission to Mozilla Add-ons. It uses the following stable Gecko identifier:
 \begin{center}
 \small\path{rs-rate@readersourcing.org}
 \end{center}
@@ -1028,7 +1019,7 @@ Every time a reader rates a publication, every score is updated according to bot
 
 \label{rs-py}
 
-\rspy \cite{RS-Py} is an experimental component of the Readersourcing 2.0 ecosystem, providing notebook-based implementations of the models presented by \citet{Soprano2019}. The deployed Ruby implementations remain encapsulated by \rsserver as described in Section~\ref{rs-server}; \rspy supports exploration, dataset generation, and comparison without changing the server.
+\rspy \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem, providing a fully working Python implementation of the models presented by \citet{Soprano2019}. These models are also encapsulated by the server-side application of Readersourcing 2.0, as described in Section~\ref{rs-server}.
 
 Developers with a background in the Python programming language can leverage \rspy to generate and test new simulations of ratings given by readers to a set of publications. They are allowed to alter the internal logic of the models to test new approaches without the need to fork and edit the full implementation of Readersourcing 2.0.
 
@@ -1038,30 +1029,31 @@ Developers with a background in the Python programming language can leverage \rs
 
 \subsection{Installation}
 
-Clone the \rspy repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} create an isolated Python environment, and install the packages declared in \verb|requirements.txt|:
+To use the \rspy notebooks, clone the repository\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} and place it somewhere on the filesystem. The project targets Python 3.13, and its tested direct dependencies are declared in \verb|requirements.txt|. An isolated environment can be created as follows:
 
 \begin{lstlisting}
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-jupyter notebook
 \end{lstlisting}
 
-On Windows, activate the environment with \verb|.venv\Scripts\activate|. The scientific Python packages are declared without exact version pins, so results intended for publication should record the resolved environment separately.
+On Windows, activate the environment with \verb|.venv\Scripts\activate|.
 
 \subsection{Usage}
 
-\rspy is organized into the following tracked areas:
+\rspy is organized into the following main folders:
 
 \begin{itemize}
-    \item \verb|data| stores input datasets and generated archives;
-    \item \verb|models| stores serialized model outputs and computed quantities;
-    \item \verb|notebooks| contains dataset generation, model implementation, and experiment notebooks;
-    \item \verb|src| contains the notebook conversion helper;
-    \item \verb|utils| contains auxiliary tooling, including the power-law generator.
+    \item The \verb|data| folder is used to store the datasets exploited to test the models presented by \citet{Soprano2019} and the compressed synthetic datasets.
+    \item The \verb|models| folder is used to store the output of these models and the computed quantities.
+    \item The \verb|notebooks| folder contains Jupyter notebooks used to generate datasets, implement the models, and analyze experiments.
+    \item The \verb|scripts| folder is generated on demand and contains implementations of the Jupyter notebooks as pure Python scripts.
+    \item The \verb|src| folder contains the conversion utility and the in-memory domain implementation.
+    \item The \verb|tests| folder contains the numerical and utility characterization tests.
+    \item The \verb|utils| folder contains auxiliary tooling, including the power-law generator.
 \end{itemize}
 
-Within the tracked \verb|notebooks| folder, the principal files are:
+Within the \verb|notebooks| folder, the principal files are:
 
 \begin{itemize}
     \item \verb|1.Seed-Power-Law.ipynb| generates synthetic data using power-law distributions;
@@ -1071,9 +1063,11 @@ Within the tracked \verb|notebooks| folder, the principal files are:
     \item \verb|ReadersourcingToolkit.py| contains shared Python functionality used by the notebooks.
 \end{itemize}
 
-The \verb|src/Convert.py| helper expects unnumbered notebook names and a generated \verb|scripts| directory that is not included in the repository. It is therefore outside the supported notebook execution path. The numbered notebooks are the executable artifacts of \rspy.
+Inside the \verb|src| folder, the \verb|Convert.py| script enables the conversion of the numbered notebooks into pure Python scripts, which are then stored inside the generated \verb|scripts| folder together with their shared toolkit.
 
-Start Jupyter from the repository root and open the notebooks in numerical order. Their configuration cells and saved outputs document the parameters relevant to each experiment. Object-oriented simulation work, including an explicit author entity, is maintained separately in the Readersourcing\_OO repository\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}} and underpins the evaluation by \citet{Soprano2025}. Its simulation domain is distinct from the deployed \rsserver domain.
+The behavior of the notebooks can be customized by modifying the parameter settings found in their initial cells. To run them, navigate to the \verb|notebooks| folder and type \verb|jupyter lab|. This command starts the Jupyter server and opens the interface from which the notebooks can be executed in numerical order.
+
+The in-memory implementation under \verb|src/rs_py| and its characterization tests reproduce the reader, publication, and rating behavior currently shared with \rsserver. They complement rather than restrict the principal purpose of \rspy: developers remain free to alter the internal logic of the notebooks and test new approaches. Additional object-oriented simulation work, including an explicit author entity, is maintained in the Readersourcing\_OO repository.\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}}
 
 \section{Overview}
 
