@@ -4,9 +4,7 @@ This is the official repository for the technical documentation of the Readersou
 
 <h1>Description</h1>
 
-The documentation describes the scientific context, domain model, object-oriented architecture, communication contracts, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py.
-
-Version 2.0 updates the runtime and deployment information while preserving the original Readersourcing domain concepts and Strategy-based model implementation. Historical procedures that have not been revalidated against the modernized stack are explicitly identified as such.
+The documentation describes the scientific context, domain model, object-oriented architecture, communication contracts, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py. The Readersourcing domain concepts and the Strategy-based implementation of its models provide the common design foundation across the ecosystem.
 
 <h1>Build</h1>
 
@@ -34,7 +32,7 @@ The PDF committed for a release should be rebuilt from the same tagged source an
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_PDF">RS_PDF</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">RS_Rate</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Py">RS_Py</a>
-- <a href="https://doi.org/10.1007/978-3-030-11226-4_21">Original Article</a>
+- <a href="https://doi.org/10.1007/978-3-030-11226-4_21">IRCDL 2019 Article</a>
 - <a href="https://doi.org/10.5281/zenodo.1452397">Technical Documentation (Zenodo)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-TechnicalDocumentation">Technical Documentation (GitHub)</a>
 

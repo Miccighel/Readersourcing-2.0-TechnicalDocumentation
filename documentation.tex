@@ -231,7 +231,7 @@ breaklines=true
 
 The Readersourcing 2.0 ecosystem was built within a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and the University of Udine.\footnote{\url{https://www.uniud.it/}} It was presented by \citet{Soprano2019} during the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The original paper is also available on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and related documentation are available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
 
-This version of the documentation describes the modernized 2.0 software stack while preserving the original domain concepts, equations, object-oriented responsibilities, and public communication contracts. It distinguishes the deployed application from the experimental implementations used to study the model. Later evaluations based on simulations and network analysis are discussed by \citet{Soprano2019HITS} and \citet{Soprano2025}.
+This documentation describes the software stack, domain concepts, equations, object-oriented responsibilities, and public communication contracts of Readersourcing 2.0. It distinguishes the deployed application from the experimental implementations used to study the model. Evaluations based on simulations and network analysis are discussed by \citet{Soprano2019HITS} and \citet{Soprano2025}.
 
 Initially, a recap of the general architecture is presented, followed by a description of the role and purpose of each component. Specific aspects, such as the technology used, the internal architecture, and the structure of the database, are also discussed. The diagrams adhere to UML where specified and follow the notation guidelines proposed by \citet{Fowler03}.
 
@@ -253,15 +253,15 @@ Figure~\ref{fig:architecture} provides an overview of the architecture of Reader
 \label{rs-server}
 
 \rsserver \cite{RS-Server} is the server-side component that collects and aggregates ratings and uses the RSM and TRM models described by \citet{Soprano2019} to compute quality scores for readers and publications. A compatible \rspdf executable is shipped in the \verb|lib| directory and is invoked as a local process when a publication must be annotated.
-There may be up to \emph{n} browsers and end-users communicating with the server, each through an instance of \rsrate. The current extension distribution targets Chromium-based browsers and Firefox.
+There may be up to \emph{n} browsers and end-users communicating with the server, each through an instance of \rsrate. The extension is distributed for Chromium-based browsers and Firefox.
 
 This setup facilitates interactions between readers and the server through clients installed on readers' browsers or by utilizing the stand-alone web interface provided by \rsserver. These clients are responsible for managing the registration and authentication of readers, handling rating actions, and managing the download actions of link-annotated publications.
 
 \subsection{Scientific Model and Deployed Application}
 
-The scientific model, the simulation code, and the deployed application share the same Readersourcing vocabulary but have different scopes. The deployed \rsserver preserves the original three persistent entities---users, publications, and ratings---and the RSM/TRM update order implemented by the original application. Experimental repositories may introduce additional entities, such as explicit authors, or evaluate alternative simulation assumptions without implicitly changing the production domain.
+The scientific model, the simulation code, and the deployed application share the same Readersourcing vocabulary but have different scopes. The \rsserver domain contains three persistent entities---users, publications, and ratings---and applies the RSM strategy before the TRM strategy when processing a rating. Experimental repositories may introduce additional entities, such as explicit authors, or evaluate alternative simulation assumptions without changing the server domain.
 
-The modernization work therefore treats the domain behavior as a compatibility boundary. Framework versions, build systems, browser manifests, and deployment tooling may change, while the strategy abstraction, score computation order, database tables, routes, and JSON contracts remain stable unless a separate domain change is explicitly designed and tested.
+The domain behavior is defined by the strategy abstraction, score computation order, database associations, routes, and JSON contracts. Frameworks, build systems, browser manifests, and deployment tooling provide the infrastructure around this domain model.
 
 During the design phase of \rsserver, strategies were adopted to ensure extensibility and generality. This includes: 
 \begin{enumerate}[label=(\roman*)]
@@ -297,11 +297,10 @@ One of the communication paradigms for Web Services is \emph{RESTful} (\emph{REp
 
 \rsserver is a Rails application exposing RESTful interfaces alongside server-rendered web workflows. API clients exchange JSON messages over HTTP, while the same domain and authorization rules are reused by the web interface.
 
-The implementation routes and integration tests are the authoritative communication contract. A historical Postman collection with request examples remains available at
+The REST interface is defined by the application routes, JSON views, and integration tests. A Postman collection provides request and response examples for the exposed resources:
 \begin{center}
 \small\url{https://documenter.getpostman.com/view/4632696/RWTiwfV4?version=latest}.
 \end{center}
-Examples in the external collection should be checked against the version of \rsserver being deployed.
 
 To illustrate, Table \ref{tab:rest} presents a subset of the RESTful interface of \rsserver. These operations encompass all functionalities related to managing one of the entities within the application domain, specifically, publications. Suppose a user initiates a ``show'' operation for a publication with an identifier equal to 1 by accessing the corresponding endpoint. In response, \rsserver would provide a JSON-encoded response similar to the example below.
 
@@ -426,7 +425,7 @@ In addition, each of these entities is further characterized by additional attri
     node[above,pos=.88] {\scriptsize $1$} node[below] {\scriptsize belongs to} (publication.west);
 \end{tikzpicture}%
 }
-\caption{Current persistent entities and associations in the \rsserver database (selected attributes).}
+\caption{Persistent entities and associations in the \rsserver database (selected attributes).}
 \label{fig:er}
 \end{figure}
 
@@ -436,7 +435,7 @@ Similarly, a publication may receive zero or more ratings, while each rating bel
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:class-1} shows the main responsibilities of the current \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent models retain the business logic and associations described in the previous section. Authentication and Readersourcing computations are delegated to focused command and strategy objects rather than being absorbed into the controllers.
+Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent models encapsulate the business logic and associations described in the previous section. Authentication and Readersourcing computations are delegated to focused command and strategy objects rather than being absorbed into the controllers.
 
 \begin{figure}[!tbp]
 \centering
@@ -540,7 +539,7 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the current \rsserve
   \draw[rsarrow] (rating) -- (publication);
 \end{tikzpicture}%
 }
-\caption{High-level class diagram of the modernized \rsserver. Method lists are intentionally selective.}
+\caption{High-level class diagram of \rsserver. Method lists are intentionally selective.}
 \label{fig:class-1}
 \end{figure}
 
@@ -559,11 +558,11 @@ The browser client stores the returned token in its application cookie and attac
 \label{fig:auth}
 \end{figure}
 
-The classes responsible for the Readersourcing computations continue to follow the \emph{Strategy} pattern: \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RsmStrategy}, and \emph{TrmStrategy}. A rating invokes the RSM strategy first and the TRM strategy second, preserving the original update order and quantities. The pattern keeps model selection extensible without weakening the fidelity of the existing domain behavior.
+The classes responsible for the Readersourcing computations follow the \emph{Strategy} pattern: \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RsmStrategy}, and \emph{TrmStrategy}. A rating invokes the RSM strategy first and the TRM strategy second. The pattern keeps model selection extensible while expressing the score computation order explicitly.
 
 \subsection{Deploy}
 
-The current codebase supports two verified setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which reproduces the production stack locally. The modernized application was verified with both paths while preserving the existing routes, database schema, JSON contracts, and Readersourcing strategies.
+\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment.
 
 Environment-specific secrets and database settings are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
 
@@ -613,7 +612,7 @@ PostgreSQL must be accepting connections before the database commands are execut
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose builds \rsserver from the current checkout and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and production-like verification.
+Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and production-like verification.
 
 \subsubsubsection{Requirements}
 
@@ -649,17 +648,11 @@ Use \verb|docker compose down| to stop the services. The named PostgreSQL volume
 \item \verb|docker compose down| (to stop the services).
 \end{itemize}
 
-\subsubsection{Historical Heroku Deployment}
-
-\label{modality:3}
-
-Earlier versions of this document described a Heroku Container Registry deployment. That procedure has not been revalidated against Rails 8, the current Java 21 runtime, or current Heroku product requirements, and is therefore retained only as historical context. Docker Compose is the verified production-like deployment path. Before restoring Heroku or another PaaS as a supported target, its release phase, database migration strategy, persistent-file requirements, SMTP configuration, and health checks must be tested explicitly.
-
 \subsubsection{Environment Variables}
 
 \label{env-vars}
 
-Deployment-specific credentials and connection details are supplied through environment variables. Table~\ref{env} lists the variables used by the current application. Database URLs take precedence over individual PostgreSQL settings.
+Deployment-specific credentials and connection details are supplied through environment variables. Table~\ref{env} lists the variables used by the application. Database URLs take precedence over individual PostgreSQL settings.
 
 \small
 \begin{longtable}{L{3.3cm}L{6.5cm}L{2.9cm}}
@@ -724,7 +717,7 @@ RAILS_LOG_TO_STDOUT=true
 
 \subsubsection{Sending Mails}
 
-\rsserver supports standard SMTP services for account confirmation, password recovery, bug reports, and contact messages. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. Provider-specific API keys can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider's current documentation remains authoritative for those values.
+\rsserver supports standard SMTP services for account confirmation, password recovery, bug reports, and contact messages. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. Provider-specific API keys can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider documentation defines the required values.
 
 \subsubsection{Connecting To The Database}
 
@@ -751,7 +744,7 @@ The executable is distributed as the self-contained \verb|RS_PDF-v2.0.0-shaded.j
 
 \subsection{Implementation and Technology}
 
-The technology used to develop \rspdf is the Kotlin object-oriented programming language, known for its compatibility with the Java Virtual Machine. The current build targets Java 21 and uses Kotlin 2.4, Apache PDFBox 3 for PDF manipulation, Apache Commons CLI for argument parsing, Log4j 2 for logging, and ZXing for QR-code generation.
+The technology used to develop \rspdf is the Kotlin object-oriented programming language, known for its compatibility with the Java Virtual Machine. The build targets Java 21 and uses Kotlin 2.4, Apache PDFBox 3 for PDF manipulation, Apache Commons CLI for argument parsing, Log4j 2 for logging, and ZXing for QR-code generation.
 
 Kotlin was chosen because it provides modern object-oriented language features while interoperating directly with Java libraries. The underlying PDF toolkit is \emph{PDFBox},\footnote{\url{https://pdfbox.apache.org/}} while ZXing\footnote{\url{https://github.com/zxing/zxing}} produces the QR code placed beside the link annotation.
 
@@ -779,7 +772,7 @@ The \textbf{publications} package contains the PDF business logic. Its Controlle
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:classi-2} shows the main classes of \rspdf. The structure deliberately preserves the original Controller/Model responsibilities: \emph{Program} owns process-level parsing and flow, \emph{PublicationController} manages the collection, and \emph{PublicationModel} performs PDF transformations through PDFBox and ZXing.
+Figure~\ref{fig:classi-2} shows the main classes of \rspdf. The structure follows Controller/Model responsibilities: \emph{Program} owns process-level parsing and flow, \emph{PublicationController} manages the collection, and \emph{PublicationModel} performs PDF transformations through PDFBox and ZXing.
 
 The \emph{Parameters} data class transports the caption, URL, optional authentication token, and optional publication identifier through the controller boundary. This keeps the \emph{PublicationModel} interface stable as related input data evolve.
 
@@ -907,7 +900,7 @@ java -jar C:\lib\RS_PDF-v2.0.0-shaded.jar \
 
 \label{rs-rate}
 
-\rsrate~\cite{RS-Rate} is a browser extension that acts as a client for the Readersourcing 2.0 ecosystem without requiring users to navigate to its website first. The current Manifest V3 codebase produces separate self-contained builds for Chromium-based browsers, including Google Chrome\footnote{\url{https://www.google.com/chrome/}} and Microsoft Edge,\footnote{\url{https://www.microsoft.com/en-us/edge/}} and for Mozilla Firefox.\footnote{\url{https://www.mozilla.org/firefox/}}
+\rsrate~\cite{RS-Rate} is a browser extension that acts as a client for the Readersourcing 2.0 ecosystem without requiring users to navigate to its website first. Its Manifest V3 codebase produces separate self-contained builds for Chromium-based browsers, including Google Chrome\footnote{\url{https://www.google.com/chrome/}} and Microsoft Edge,\footnote{\url{https://www.microsoft.com/en-us/edge/}} and for Mozilla Firefox.\footnote{\url{https://www.mozilla.org/firefox/}}
 
 The primary objective of \rsrate is to provide readers with a way to seamlessly rate a publication with minimal effort—just a few clicks or keystrokes within the Readersourcing 2.0 ecosystem, contributing to a more dynamic online reading experience. \rsrate serves as the initial client of our project, extending beyond the web-based interface available on the main portal.
 
@@ -917,7 +910,7 @@ The two targets share the same application source and domain workflow. Browser-s
 
 \rsrate is developed with standard web technologies: HTML, CSS, and JavaScript. Its dependencies remain declared in \verb|package.json| and resolved through the committed Yarn lockfile. The build process copies and checks all executable assets locally, then produces unpacked Manifest V3 extensions in \verb|dist/chromium| and \verb|dist/firefox|. Store archives are generated from those outputs rather than treating CRX as the only distribution format.
 
-The JavaScript implementation uses jQuery for DOM manipulation and asynchronous API requests. Bootstrap 4 and its jQuery-based plugins are intentionally retained because the existing views depend on their markup and integration behavior; moving to Bootstrap 5 is a separate user-interface migration rather than a dependency-only update.
+The JavaScript implementation uses jQuery for DOM manipulation and asynchronous API requests. Bootstrap 4 and its jQuery-based plugins provide the markup and interaction behavior used by the extension views.
 
 \subsection{Installation}
 
@@ -926,7 +919,15 @@ The JavaScript implementation uses jQuery for DOM manipulation and asynchronous 
 \item \textbf{Google Chrome and Microsoft Edge}: \url{https://chromewebstore.google.com/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg}
 \end{itemize}
 
-The repository also produces a Firefox Manifest V3 package with the stable Gecko identifier \verb|rs-rate@readersourcing.org|. This package is ready for validation and submission to Mozilla Add-ons, but this statement does not imply that a signed AMO release has already been published. For local testing, load \verb|dist/firefox/manifest.json| from \verb|about:debugging#/runtime/this-firefox| using \emph{Load Temporary Add-on}.
+The Firefox Manifest V3 package uses the following stable Gecko identifier:
+\begin{center}
+\small\path{rs-rate@readersourcing.org}
+\end{center}
+For local testing, open \path{about:debugging}, choose \emph{This Firefox}, and load
+\begin{center}
+\small\path{dist/firefox/manifest.json}
+\end{center}
+using \emph{Load Temporary Add-on}. Distribution through Mozilla Add-ons requires validation and signing by Mozilla.
 
 \subsection{Development and Packaging}
 
@@ -944,7 +945,7 @@ yarn verify
 yarn package:firefox
 \end{lstlisting}
 
-The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 140 or later. Its manifest declares the account, browsing, website-interaction, and publication-content categories required by the existing Readersourcing workflow; no separate analytics channel is introduced.
+The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 140 or later. Its manifest declares the account, browsing, website-interaction, and publication-content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
 
 Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction.
 
@@ -1037,7 +1038,7 @@ Developers with a background in the Python programming language can leverage \rs
 
 \subsection{Installation}
 
-Clone the \rspy repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} create an isolated Python environment compatible with its current requirements, and install the packages declared in \verb|requirements.txt|:
+Clone the \rspy repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Py}} create an isolated Python environment, and install the packages declared in \verb|requirements.txt|:
 
 \begin{lstlisting}
 python -m venv .venv
@@ -1046,7 +1047,7 @@ python -m pip install -r requirements.txt
 jupyter notebook
 \end{lstlisting}
 
-On Windows, activate the environment with \verb|.venv\Scripts\activate|. The repository currently declares its scientific Python packages without exact version pins, so results intended for publication should record the resolved environment separately.
+On Windows, activate the environment with \verb|.venv\Scripts\activate|. The scientific Python packages are declared without exact version pins, so results intended for publication should record the resolved environment separately.
 
 \subsection{Usage}
 
@@ -1056,7 +1057,7 @@ On Windows, activate the environment with \verb|.venv\Scripts\activate|. The rep
     \item \verb|data| stores input datasets and generated archives;
     \item \verb|models| stores serialized model outputs and computed quantities;
     \item \verb|notebooks| contains dataset generation, model implementation, and experiment notebooks;
-    \item \verb|src| contains legacy conversion support;
+    \item \verb|src| contains the notebook conversion helper;
     \item \verb|utils| contains auxiliary tooling, including the power-law generator.
 \end{itemize}
 
@@ -1070,9 +1071,9 @@ Within the tracked \verb|notebooks| folder, the principal files are:
     \item \verb|ReadersourcingToolkit.py| contains shared Python functionality used by the notebooks.
 \end{itemize}
 
-The \verb|src/Convert.py| helper still refers to historical, unnumbered notebook names and a generated \verb|scripts| directory that is not part of the current tracked tree. It must therefore be treated as legacy tooling until it is realigned and verified. The notebooks themselves remain the authoritative executable artifacts for \rspy.
+The \verb|src/Convert.py| helper expects unnumbered notebook names and a generated \verb|scripts| directory that is not included in the repository. It is therefore outside the supported notebook execution path. The numbered notebooks are the executable artifacts of \rspy.
 
-Start Jupyter from the repository root and open the notebooks in numerical order. Their configuration cells and saved outputs document the parameters relevant to each experiment. More recent object-oriented simulation work, including an explicit author entity, is maintained separately in the Readersourcing\_OO repository\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}} and underpins the evaluation by \citet{Soprano2025}; it is a scientific extension, not an implicit change to the deployed \rsserver domain.
+Start Jupyter from the repository root and open the notebooks in numerical order. Their configuration cells and saved outputs document the parameters relevant to each experiment. Object-oriented simulation work, including an explicit author entity, is maintained separately in the Readersourcing\_OO repository\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}} and underpins the evaluation by \citet{Soprano2025}. Its simulation domain is distinct from the deployed \rsserver domain.
 
 \section{Overview}
 
