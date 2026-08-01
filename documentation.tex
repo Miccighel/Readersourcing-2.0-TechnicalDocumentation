@@ -364,7 +364,7 @@ To support features such as storing link-annotated publications and authenticati
 
 \begin{itemize}
 \item \textbf{Users}: represents the users of the system and stores their personal data. A user may have an optional \emph{ORCID} and a boolean indicating whether they wish to receive emails. Additional attributes store the tokens required for operations such as password reset.
-\item \textbf{Ratings}: represents the ratings provided by readers for publications. Each rating has a numerical score, a boolean indicating whether it is anonymous, and another boolean recording whether it was edited later.
+\item \textbf{Ratings}: represents the ratings provided by readers for publications. Each rating has a numerical score, a boolean indicating whether it is anonymous, and another boolean recording whether it was edited later. A reader can provide at most one rating for a given publication; this invariant is enforced both by the application model and by a unique database constraint.
 \item \textbf{Publications}: represents publications known to the server, including those saved for later but not yet rated. A publication may have a \emph{DOI}, descriptive metadata, and attributes used to manage the original and link-annotated PDF files.
 \end{itemize}
 These entities also contain attributes such as \emph{steadiness} and \emph{informativeness}, which store scores or parameters computed by the Readersourcing models.
@@ -537,6 +537,8 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
 The \emph{ApplicationController} contains shared authorization hooks for both API and server-side requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator} and \emph{Authorizer} command objects isolate credential verification, token issuance, and token validation from HTTP concerns.
 
 For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
+
+Authentication establishes the identity of the reader making the request, while resource-level authorization determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
 
 When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver issues an HS256-signed JWT whose payload contains the user identifier, the client IP address, and a standard expiration claim set to seven days after issuance.
 
