@@ -538,9 +538,9 @@ The \emph{ApplicationController} contains shared authorization hooks for both AP
 
 For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
 
-When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver issues a signed JWT whose payload contains the user identifier, the client IP address, and an expiration time.
+When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver issues an HS256-signed JWT whose payload contains the user identifier, the client IP address, and a standard expiration claim set to seven days after issuance.
 
-The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, and referenced user before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
+The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, and referenced user before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
 \begin{figure}[!tbp]
 \centering
@@ -548,6 +548,8 @@ The browser client stores the returned token in its application cookie and attac
 \caption{Representation of the token-based authentication process (NOT UML).}
 \label{fig:auth}
 \end{figure}
+
+Password recovery uses a separate, single-use credential. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
 The classes responsible for the Readersourcing computations follow the \emph{Strategy} pattern: \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RsmStrategy}, and \emph{TrmStrategy}. A rating invokes the RSM strategy first and the TRM strategy second. The pattern keeps model selection extensible while expressing the score computation order explicitly.
 
@@ -646,7 +648,7 @@ Use \verb|docker compose down| to stop the services. The named PostgreSQL volume
 Deployment-specific credentials and connection details are supplied through environment variables. Table~\ref{env} lists the variables used by the application. Database URLs take precedence over individual PostgreSQL settings.
 
 \small
-\begin{longtable}{L{3.3cm}L{6.5cm}L{2.9cm}}
+\begin{longtable}{L{4.1cm}L{5.7cm}L{2.9cm}}
 \toprule
 \textbf{Environment Variable} & \textbf{Purpose} & \textbf{Scope} \\
 \midrule
@@ -678,6 +680,22 @@ Deployment-specific credentials and connection details are supplied through envi
 \verb|RAILS_LOG_TO_STDOUT| & When present, sends production Rails logs to standard output. & production \\
 \midrule
 \verb|RAILS_MAX_THREADS| & Maximum Active Record connection pool size; defaults to 5. & all environments \\
+\midrule
+\verb|PUBLIC_BASE_URL| & Public HTTP or HTTPS origin used to generate password-recovery links; required for recovery in production. & production \\
+\midrule
+\path{CORS_ALLOWED_ORIGINS} & Comma-separated origins allowed to make cross-origin API requests. An omitted value disables CORS in production. & production \\
+\midrule
+\verb|FORCE_SSL| & Set to \verb|true| when the public instance is served through HTTPS. & production \\
+\midrule
+\makecell[l]{\texttt{RS\_PDF\_MAX\_}\\\texttt{DOWNLOAD\_BYTES}} & Maximum accepted publication size in bytes; defaults to 52428800 (50 MiB). & development, production \\
+\midrule
+\verb|RS_PDF_OPEN_TIMEOUT| & Maximum connection-opening time in seconds; defaults to 5. & development, production \\
+\midrule
+\verb|RS_PDF_READ_TIMEOUT| & Maximum response-reading time in seconds; defaults to 20. & development, production \\
+\midrule
+\path{RS_PDF_PROCESS_TIMEOUT} & Maximum \rspdf execution time in seconds; defaults to 60. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_PDF\_ALLOW\_}\\\texttt{PRIVATE\_NETWORKS}} & Set to \verb|true| only when publications must be fetched from a trusted private network. & development, production \\
 \bottomrule
 \caption{Environment variables of \rsserver.}
 \label{env}
@@ -703,12 +721,21 @@ SMTP_DOMAIN_NAME=readersourcing.example
 SMTP_DOMAIN_ADDRESS=smtp.example
 EMAIL_BUG_REPORT=bugs@readersourcing.example
 EMAIL_ADMIN=contact@readersourcing.example
+PUBLIC_BASE_URL=https://readersourcing.example
+CORS_ALLOWED_ORIGINS=https://client.readersourcing.example
+FORCE_SSL=true
 RAILS_LOG_TO_STDOUT=true
 \end{lstlisting}
 
+The value of \verb|PUBLIC_BASE_URL| is an origin: it contains the scheme, host, and optional port, but no path, query string, fragment, or credentials. In production, a missing value makes password recovery unavailable rather than deriving a link from an untrusted request host.
+
+\verb|CORS_ALLOWED_ORIGINS| contains exact origins separated by commas. Supplying \verb|*| deliberately opens the cross-origin policy and is inappropriate for an ordinary public deployment. \rsrate requests browser permission for the selected server origin and therefore does not depend on a generated extension origin being listed here. Set \verb|FORCE_SSL=true| only after HTTPS is available at the public origin.
+
+Publication downloads reject private and reserved network addresses by default. The \verb|RS_PDF_ALLOW_PRIVATE_NETWORKS| override is intended only for a controlled deployment in which trusted publications are deliberately served from such a network.
+
 \subsubsection{Sending Mails}
 
-\rsserver supports standard SMTP services for account confirmation, password recovery, bug reports, and contact messages. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. Provider-specific API keys can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider documentation defines the required values.
+\rsserver supports standard SMTP services for account confirmation, password recovery, password-change notifications, bug reports, and contact messages. Recovery messages contain the single-use link described above; the new password is entered only in \rsserver and is not included in either recovery or confirmation mail. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. Provider-specific API keys can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider documentation defines the required values.
 
 \subsubsection{Connecting To The Database}
 
@@ -936,13 +963,13 @@ yarn verify
 yarn package:firefox
 \end{lstlisting}
 
-The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 140 or later. Its manifest declares the account, browsing, website-interaction, and publication-content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
+The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website-interaction, and publication-content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
 
-Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction.
+Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. The permission covers only the selected origin, while any configured application path remains part of the server address.
 
 \subsection{Usage}
 
-Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for a publication. This represents a typical reader visiting a publisher's website to access a paper in PDF format. The figure also shows the first page displayed when the reader opens the client. From this page, the reader can reach either the login page shown in Figure~\ref{fig:login} or the sign-up page. The login page also provides access to a similar password-recovery page, which is not shown.
+Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for a publication. This represents a typical reader visiting a publisher's website to access a paper in PDF format. The figure also shows the first page displayed when the reader opens the client. From this page, the reader can reach either the login page shown in Figure~\ref{fig:login} or the sign-up page. The login page also provides access to a password-recovery page, which requests the email containing the link to the \rsserver password form.
 
 \begin{figure}
 \centering
