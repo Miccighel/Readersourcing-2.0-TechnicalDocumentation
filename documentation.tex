@@ -544,14 +544,16 @@ When a user logs in, the supplied credentials are verified against the stored pa
 
 The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, and referenced user before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
-\begin{figure}[!tbp]
+The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout is a state-changing operation and is therefore available only through an HTTP \verb|POST| request. HTML state-changing requests require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token-based API boundary instead of the browser-session CSRF boundary.
+
+Password recovery uses a separate, single-use credential. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/autenticazione.png}
 \caption{Representation of the token-based authentication process (NOT UML).}
 \label{fig:auth}
 \end{figure}
-
-Password recovery uses a separate, single-use credential. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
 The classes responsible for the Readersourcing computations follow the \emph{Strategy} pattern: \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RsmStrategy}, and \emph{TrmStrategy}. A rating invokes the RSM strategy first and the TRM strategy second. The pattern keeps model selection extensible while expressing the score computation order explicitly.
 
