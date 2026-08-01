@@ -369,6 +369,8 @@ To support features such as storing link-annotated publications and authenticati
 \end{itemize}
 These entities also contain attributes such as \emph{steadiness} and \emph{informativeness}, which store scores or parameters computed by the Readersourcing models.
 
+An auxiliary \textbf{AuthenticationToken} entity records each active login. It belongs to one user and stores the unique JWT identifier and its expiration time, but never the encoded JWT itself. Authentication tokens support the security boundary rather than the Readersourcing score domain.
+
 \begin{figure}[!tbp]
 \centering
 \resizebox{\textwidth}{!}{%
@@ -409,11 +411,23 @@ These entities also contain attributes such as \emph{steadiness} and \emph{infor
       steadiness
     \end{tabular}
   };
+  \node[rsclass, below=of user] (authenticationtoken) {
+    \textbf{AuthenticationToken}
+    \nodepart{second}
+    \begin{tabular}{@{}l@{}}
+      id (PK)\\
+      user\_id (FK)\\
+      jti\\
+      expires\_at
+    \end{tabular}
+  };
 
   \draw[rsarrow] (rating.west) -- node[above,pos=.13] {\scriptsize $0..*$}
     node[above,pos=.88] {\scriptsize $1$} node[below] {\scriptsize belongs to} (user.east);
   \draw[rsarrow] (rating.east) -- node[above,pos=.13] {\scriptsize $0..*$}
     node[above,pos=.88] {\scriptsize $1$} node[below] {\scriptsize belongs to} (publication.west);
+  \draw[rsarrow] (authenticationtoken.north) -- node[right,pos=.13] {\scriptsize $0..*$}
+    node[right,pos=.88] {\scriptsize $1$} node[left] {\scriptsize belongs to} (user.south);
 \end{tikzpicture}%
 }
 \caption{Persistent entities and associations in the \rsserver database (selected attributes).}
@@ -424,9 +438,11 @@ Figure~\ref{fig:er} depicts the two mandatory associations of a rating. A user m
 
 Similarly, a publication may receive zero or more ratings, while each rating belongs to exactly one publication. The zero multiplicity is required because a publication may be fetched and saved for later before any rating is submitted.
 
+The auxiliary association permits a user to have zero or more active authentication tokens, while every token belongs to exactly one user. Removing a user also removes all their active tokens.
+
 \subsection{Class Diagram}
 
-Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent models encapsulate the business logic and associations described in the previous section. Authentication and Readersourcing computations are delegated to focused command and strategy objects rather than being absorbed into the controllers.
+Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry. Authentication and Readersourcing computations are delegated to focused command and strategy objects rather than being absorbed into the controllers.
 
 \begin{figure}[!tbp]
 \centering
@@ -534,17 +550,21 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
 \label{fig:class-1}
 \end{figure}
 
-The \emph{ApplicationController} contains shared authorization hooks for both API and server-side requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator} and \emph{Authorizer} command objects isolate credential verification, token issuance, and token validation from HTTP concerns.
+The \emph{ApplicationController} contains shared authorization hooks for both API and server-side requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator}, \emph{Authorizer}, and \emph{AuthenticationTokenRevoker} command objects isolate credential verification, token issuance, token validation, and revocation from HTTP concerns.
 
 For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
 
 Authentication establishes the identity of the reader making the request, while resource-level authorization determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
 
-When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver issues an HS256-signed JWT whose payload contains the user identifier, the client IP address, and a standard expiration claim set to seven days after issuance.
+When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver creates an active-token record and issues an HS256-signed JWT whose payload contains the user identifier, the client IP address, its unique \verb|jti| identifier, and a standard expiration claim set to seven days after issuance.
 
-The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, and referenced user before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
+The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, referenced user, and corresponding active-token record before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
-The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout is a state-changing operation and is therefore available only through an HTTP \verb|POST| request. HTML state-changing requests require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token-based API boundary instead of the browser-session CSRF boundary.
+The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout removes the active-token record for the current browser or API session and leaves the reader's other devices authenticated. A successful password change or reset removes every active token belonging to that reader; account deletion removes the same records through the user association. The signed value remains immutable, but without its active record it can no longer authorize a protected request.
+
+Logout is a state-changing operation and is therefore available only through an HTTP \verb|POST| request. HTML state-changing requests require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token-based API boundary instead of the browser-session CSRF boundary.
+
+In the save-for-later workflow, the token embedded in a link-annotated PDF remains a signed marker of the reader who created that reference. Following the reference still requires a current authenticated session, and the embedded marker is compared with the newly authenticated reader; it does not by itself authorize an API request.
 
 Password recovery uses a separate, single-use credential. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
@@ -593,6 +613,8 @@ bin/rails server -b 127.0.0.1 -p 3000 -e development
 \end{lstlisting}
 
 PostgreSQL must be accepting connections before the database commands are executed. With the sample bind address and port, the application is available at \url{http://127.0.0.1:3000}. Rails binstubs are always invoked from the repository root so that the locked application dependencies are used.
+
+The active-token registry is populated at login. A session carrying a JWT without a registered identifier is rejected and the reader signs in again.
 
 \subsubsubsection{Quick Cheatsheet}
 
