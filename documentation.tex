@@ -228,13 +228,13 @@ breaklines=true
 \section{Introduction}
 
 
-The Readersourcing 2.0 ecosystem was developed as part of a research project co-funded by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and the University of Udine.\footnote{\url{https://www.uniud.it/}} It was presented by \citet{Soprano2019} at the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The paper is also available on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and related documentation are available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
+The Readersourcing 2.0 ecosystem was developed as part of a research project funded jointly by SISSA Medialab\footnote{\url{https://medialab.sissa.it/}} and the University of Udine.\footnote{\url{https://www.uniud.it/}} It was presented by \citet{Soprano2019} at the IRCDL 2019 Conference.\footnote{\url{https://ircdl2019.isti.cnr.it/}} The paper is also available on Zenodo.\footnote{\url{https://zenodo.org/record/1446468}} The code and related documentation are available on GitHub.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0}}
 
 Initially, a recap of its general architecture is presented, followed by a brief description of the role and purpose of each of its components. Specific aspects, such as the technology used, the internal architecture, and the structure of the database, are also discussed. This is achieved through different types of diagrams adhering to the UML standard unless otherwise specified, drawn according to the style rules proposed by \citet{Fowler03}. The current software requirements and operational procedures are recorded alongside the original architectural description.
 
 \section{General Architecture}
 
-Readersourcing 2.0 is an ecosystem composed of several components. It includes \rsserver \cite{RS-Server} (presented in Section~\ref{rs-server}), which gathers the ratings given by readers, and \rsrate \cite{RS-Rate} (presented in Section~\ref{rs-rate}), which acts as a client and enables readers to rate publications. Although all operations can be carried out directly through the web interface provided by \rsserver, \rspdf \cite{RS-PDF} (presented in Section~\ref{rs-pdf}) annotates PDF files with a rating URL and QR code on behalf of the server-side application. Finally, \rspy (presented in Section~\ref{rs-py}) provides a fully functional Python implementation of the RSM and TRM models described by \citet{Soprano2019}, together with the notebooks used to generate datasets and analyze experiments.
+Readersourcing 2.0 is an ecosystem composed of several components. It includes \rsserver \cite{RS-Server} (presented in Section~\ref{rs-server}), which gathers the ratings given by readers, and \rsrate \cite{RS-Rate} (presented in Section~\ref{rs-rate}), which acts as a client and enables readers to rate publications. Although all operations can be carried out directly through the web interface provided by \rsserver, \rspdf \cite{RS-PDF} (presented in Section~\ref{rs-pdf}) annotates PDF files with a rating URL and QR code on behalf of the server application. Finally, \rspy (presented in Section~\ref{rs-py}) provides a fully functional Python implementation of the RSM and TRM models described by \citet{Soprano2019}, together with the notebooks used to generate datasets and analyze experiments.
 
 Figure~\ref{fig:architecture} provides an overview of the architecture of Readersourcing 2.0, and in the following, we briefly describe these four components. We summarize the capabilities of the ecosystem in Section~\ref{overview}.
 
@@ -249,10 +249,10 @@ Figure~\ref{fig:architecture} provides an overview of the architecture of Reader
 
 \label{rs-server}
 
-\rsserver \cite{RS-Server} is the server-side component responsible for collecting and aggregating the ratings given by readers and applying the RSM and TRM models described by \citet{Soprano2019} to compute quality scores for readers and publications. An instance of \rsserver is deployed with a compatible \rspdf executable, which is shipped in the \verb|lib| directory and invoked as a local process when a publication must be annotated.
-Up to \emph{n} browsers and their users can communicate with the server, each through an instance of \rsrate. The extension is distributed for Chromium-based browsers and Firefox.
+\rsserver \cite{RS-Server} is the server component responsible for collecting and aggregating the ratings given by readers and applying the RSM and TRM models described by \citet{Soprano2019} to compute quality scores for readers and publications. An instance of \rsserver is deployed with a compatible \rspdf executable, which is shipped in the \verb|lib| directory and invoked as a local process when a publication must be annotated.
+Up to \emph{n} browsers and their users can communicate with the server, each through an instance of \rsrate. The extension is distributed for browsers based on Chromium and for Firefox.
 
-Readers can interact with the server either through clients installed in their browsers or through the stand-alone web interface provided by \rsserver. These clients manage reader registration and authentication, rating actions, and downloads of link-annotated publications.
+Readers can interact with the server either through clients installed in their browsers or through the standalone web interface provided by \rsserver. These clients manage reader registration and authentication, rating actions, and downloads of annotated publications.
 
 During the design phase of \rsserver, strategies were adopted to ensure extensibility and generality. This includes: 
 \begin{enumerate}[label=(\roman*)]
@@ -263,7 +263,7 @@ During the design phase of \rsserver, strategies were adopted to ensure extensib
 
 \subsection{Implementation and Technology}
 
-\rsserver is developed using \emph{Ruby on Rails},\footnote{\url{https://rubyonrails.org/}} an open-source web application framework built on the Ruby programming language and strongly based on the Model-View-Controller (MVC) architectural pattern.
+\rsserver is developed using \emph{Ruby on Rails},\footnote{\url{https://rubyonrails.org/}} an open source web application framework built on the Ruby programming language and strongly based on the Model View Controller (MVC) architectural pattern.
 
 The MVC pattern separates a program's control logic from its data presentation and business logic, helping developers establish a clear architecture from the initial design phase. Figure~\ref{fig:mvc} illustrates the resulting structure. It comprises three distinct entities: the \emph{Controller}, which manages control logic; the \emph{Model}, which encapsulates business logic; and the \emph{View}, which presents data.
 
@@ -286,7 +286,7 @@ An MVC framework such as Rails can support several kinds of web applications, in
 
 One communication paradigm for Web Services is \emph{REST} (\emph{REpresentational State Transfer}). In a RESTful interface, resources are identified by URIs and the HTTP method determines the operation to perform. The server returns a response in the agreed interchange format, and the client interprets that response.
 
-\rsserver is a Rails application exposing RESTful interfaces alongside server-rendered web workflows. API clients exchange JSON messages over HTTP, while the same domain and authorization rules are reused by the web interface.
+\rsserver is a Rails application exposing RESTful interfaces alongside web workflows rendered by the server. API clients exchange JSON messages over HTTP, while the same domain and authorization rules are reused by the web interface.
 
 The REST interface is defined by the application routes, JSON views, and integration tests. A Postman collection provides request and response examples for the exposed resources:
 \begin{center}
@@ -324,7 +324,7 @@ For example, Table~\ref{tab:rest} presents a subset of the RESTful interface of 
 \midrule
 \path{/publications.json} & GET & Index & Fetches the entire collection of Publications. \\
 \midrule
-\path{/publications/list} & GET & List & Fetches the entire collection of Publications (server-side view). \\
+\path{/publications/list} & GET & List & Fetches the entire collection of Publications (view rendered by the server). \\
 \midrule
 \path{/publications/1.json} & GET & Show & Returns the Publication with identifier equal to 1.\\
 \midrule
@@ -340,7 +340,7 @@ For example, Table~\ref{tab:rest} presents a subset of the RESTful interface of 
 \midrule
 \path{/publications/is_fetchable.json} & POST & Is Fetchable & Checks if the provided URL contains a fetchable Publication. \\
 \midrule
-\path{/publications/extract.json} & POST & Extract & Extracts the rating URL from a link-annotated Publication. \\
+\path{/publications/extract.json} & POST & Extract & Extracts the rating URL from an annotated Publication. \\
 \midrule
 \path{/publications/fetch.json} & POST & Fetch & Fetches a Publication from the given URL. \\
 \midrule
@@ -360,12 +360,12 @@ For example, Table~\ref{tab:rest} presents a subset of the RESTful interface of 
 
 \subsection{Database}
 
-To support features such as storing link-annotated publications and authenticating users, \rsserver uses the database schema illustrated in Figure~\ref{fig:er}. The Readersourcing 2.0 application domain contains three main entities:
+To support features such as storing annotated publications and authenticating users, \rsserver uses the database schema illustrated in Figure~\ref{fig:er}. The Readersourcing 2.0 application domain contains three main entities:
 
 \begin{itemize}
 \item \textbf{Users}: represents the users of the system and stores their personal data. A user may have an optional \emph{ORCID} and a boolean indicating whether they wish to receive emails. Additional attributes store the tokens required for operations such as password reset.
 \item \textbf{Ratings}: represents the ratings provided by readers for publications. Each rating has a numerical score, a boolean indicating whether it is anonymous, and another boolean recording whether it was edited later. A reader can provide at most one rating for a given publication; this invariant is enforced both by the application model and by a unique database constraint.
-\item \textbf{Publications}: represents publications known to the server, including those saved for later but not yet rated. A publication may have a \emph{DOI}, descriptive metadata, and attributes used to manage the original and link-annotated PDF files.
+\item \textbf{Publications}: represents publications known to the server, including those saved for later but not yet rated. A publication may have a \emph{DOI}, descriptive metadata, and attributes used to manage the original and annotated PDF files.
 \end{itemize}
 These entities also contain attributes such as \emph{steadiness} and \emph{informativeness}, which store scores or parameters computed by the Readersourcing models.
 
@@ -434,7 +434,7 @@ An auxiliary \textbf{AuthenticationToken} entity records each active login. It b
 \label{fig:er}
 \end{figure}
 
-Figure~\ref{fig:er} depicts the two mandatory associations of a rating. A user may give zero or more ratings, but each rating belongs to exactly one user. An anonymous rating still retains this association so that authentication and the one-rating-per-user constraint can be enforced; anonymity controls how the reader identity participates in presentation and processing, not referential integrity.
+Figure~\ref{fig:er} depicts the two mandatory associations of a rating. A user may give zero or more ratings, but each rating belongs to exactly one user. An anonymous rating still retains this association so that authentication and the constraint of one rating per user can be enforced; anonymity controls how the reader identity participates in presentation and processing, not referential integrity.
 
 Similarly, a publication may receive zero or more ratings, while each rating belongs to exactly one publication. The zero multiplicity is required because a publication may be fetched and saved for later before any rating is submitted.
 
@@ -442,7 +442,7 @@ The auxiliary association permits a user to have zero or more active authenticat
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry, while non-persistent objects represent durable paper references and request-rate policies. Authentication, reference validation, request throttling, and Readersourcing computations are delegated to focused objects rather than being absorbed into the controllers.
+Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and views rendered by the server present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the registry of active logins, while objects that are not persisted represent durable paper references and request rate policies. Authentication, reference validation, request throttling, and Readersourcing computations are delegated to focused objects rather than being absorbed into the controllers.
 
 \begin{figure}[!tbp]
 \centering
@@ -553,38 +553,38 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
   \draw[rsarrow] (rating) -- (publication);
 \end{tikzpicture}%
 }
-\caption{High-level class diagram of \rsserver. Method lists are intentionally selective.}
+\caption{General class diagram of \rsserver. Method lists are intentionally selective.}
 \label{fig:class-1}
 \end{figure}
 
-The \emph{ApplicationController} contains shared authorization hooks for both API and server-side requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator}, \emph{Authorizer}, and \emph{AuthenticationTokenRevoker} command objects isolate credential verification, token issuance, token validation, and revocation from HTTP concerns.
+The \emph{ApplicationController} contains shared authorization hooks for both API and server requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator}, \emph{Authorizer}, and \emph{AuthenticationTokenRevoker} command objects isolate credential verification, token issuance, token validation, and revocation from HTTP concerns.
 
-The \emph{PaperRatingReference} value object similarly isolates the creation and validation of references stored in link-annotated publications. It uses authenticated encryption with a dedicated purpose and binds each reference to one reader and one publication without persisting a login credential in the PDF.
+The \emph{PaperRatingReference} value object similarly isolates the creation and validation of references stored in annotated publications. It uses authenticated encryption with a dedicated purpose and binds each reference to one reader and one publication without persisting a login credential in the PDF.
 
-The \emph{RequestRateLimit} value object describes each request budget and provides opaque identities for the corresponding cache counters. Controllers apply these policies through the Rails rate-limiting boundary, leaving credential verification, mail delivery, publication handling, and the Readersourcing domain objects unaware of throttling concerns.
+The \emph{RequestRateLimit} value object describes each request budget and provides opaque identities for the corresponding cache counters. Controllers apply these policies through the Rails rate limiting boundary, leaving credential verification, mail delivery, publication handling, and the Readersourcing domain objects unaware of throttling concerns.
 
-For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
+For REST clients, relying only on session data held by the server to identify the authenticated user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The workflow rendered by the server can still keep the same token in its Rails session.
 
-Authentication establishes the identity of the reader making the request, while resource-level authorization determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
+Authentication establishes the identity of the reader making the request, while authorization at the resource level determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
 
-When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver creates an active-token record and issues an HS256-signed JWT whose payload contains the user identifier, the client IP address, its unique \verb|jti| identifier, and a standard expiration claim set to seven days after issuance.
+When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver creates an active token record and issues a JWT signed with HS256 whose payload contains the user identifier, the client IP address, its unique \verb|jti| identifier, and a standard expiration claim set to seven days after issuance.
 
-The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The server-rendered workflow also keeps a duplicate token in the Rails session, which is implemented through an HTTP-only cookie. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, referenced user, and corresponding active-token record before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
+The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The workflow rendered by the server also keeps a duplicate token in the Rails session, which is implemented through a cookie marked \verb|HttpOnly|. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, referenced user, and corresponding active token record before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
-The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout removes the active-token record for the current browser or API session and leaves the reader's other devices authenticated. A successful password change or reset removes every active token belonging to that reader; account deletion removes the same records through the user association. The signed value remains immutable, but without its active record it can no longer authorize a protected request.
+The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout removes the active token record for the current browser or API session and leaves the reader's other devices authenticated. A successful password change or reset removes every active token belonging to that reader; account deletion removes the same records through the user association. The signed value remains immutable, but without its active record it can no longer authorize a protected request.
 
-Logout is a state-changing operation and is therefore available only through an HTTP \verb|POST| request. HTML state-changing requests require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token-based API boundary instead of the browser-session CSRF boundary.
+Logout changes application state and is therefore available only through an HTTP \verb|POST| request. HTML requests that change state require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token authentication boundary instead of the browser session CSRF boundary.
 
-In the save-for-later workflow, \rsserver places a dedicated paper-rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the seven-day JWT and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
+In the save for later workflow, \rsserver places a dedicated paper rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the JWT, which is valid for seven days, and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
 
-Password recovery uses a separate, single-use credential. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
+Password recovery uses a separate credential that can be used once. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a form rendered by the server in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
-Request-rate policies bound operations that can be abused or consume disproportionate resources. By default, one IP address may make ten authentication attempts in three minutes and five password-recovery requests in fifteen minutes; one normalized email address may receive three recovery requests in thirty minutes; one IP address may send five contact messages in ten minutes; and one authenticated reader may initiate thirty combined publication-download, inspection, extraction, and annotation operations in one hour. Exceeding a budget returns HTTP status \verb|429 Too Many Requests| with a \verb|Retry-After| header and does not execute the protected action. Cache identities are SHA-256 digests rather than plain email addresses or IP values. Displaying the password-recovery form does not consume a recovery request.
+Request rate policies bound operations that can be abused or consume disproportionate resources. By default, one IP address may make ten authentication attempts in three minutes and five password recovery requests in fifteen minutes; one normalized email address may receive three recovery requests in thirty minutes; one IP address may send five contact messages in ten minutes; and one authenticated reader may initiate thirty combined publication download, inspection, extraction, and annotation operations in one hour. Exceeding a budget returns HTTP status \verb|429 Too Many Requests| with a \verb|Retry-After| header and does not execute the protected action. Cache identities are SHA-256 digests rather than plain email addresses or IP values. Displaying the password recovery form does not consume a recovery request.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/autenticazione.png}
-\caption{Representation of the token-based authentication process (NOT UML).}
+\caption{Representation of the token authentication process (NOT UML).}
 \label{fig:auth}
 \end{figure}
 
@@ -594,13 +594,13 @@ The classes responsible for the Readersourcing computations follow the \emph{Str
 
 \rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment.
 
-Environment-specific secrets and database settings are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
+Secrets and database settings specific to each environment are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
 
 \subsubsection{Modality 1: Manual}
 
 \label{deploy1}
 
-This modality downloads and initializes \rsserver directly on the local machine and offers the greatest flexibility for development and domain-model experiments.
+This modality downloads and initializes \rsserver directly on the local machine and offers the greatest flexibility for development and domain model experiments.
 
 \subsubsubsection{Requirements}
 
@@ -627,7 +627,7 @@ bin/rails server -b 127.0.0.1 -p 3000 -e development
 
 PostgreSQL must be accepting connections before the database commands are executed. With the sample bind address and port, the application is available at \url{http://127.0.0.1:3000}. Rails binstubs are always invoked from the repository root so that the locked application dependencies are used.
 
-The active-token registry is populated at login. A session carrying a JWT without a registered identifier is rejected and the reader signs in again.
+The active token registry is populated at login. A session carrying a JWT without a registered identifier is rejected and the reader signs in again.
 
 \subsubsubsection{Quick Cheatsheet}
 
@@ -644,7 +644,7 @@ The active-token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and production-like verification.
+Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production.
 
 \subsubsubsection{Requirements}
 
@@ -662,7 +662,7 @@ docker compose up --build
 
 The \verb|database| service must pass its health check before the \verb|rs_server_webapp| service starts. The application entrypoint runs \verb|bin/rails db:create| and \verb|bin/rails db:migrate| automatically. Once startup completes, the web application is available at \url{http://localhost:3000}; \verb|0.0.0.0| is the container bind address, not the address users should enter in a browser.
 
-Sample data remain opt-in:
+Sample data remain optional:
 
 \begin{lstlisting}
 docker compose run --rm rs_server_webapp bin/rails db:seed
@@ -684,7 +684,7 @@ Use \verb|docker compose down| to stop the services. The named PostgreSQL volume
 
 \label{env-vars}
 
-Deployment-specific credentials and connection details are supplied through environment variables. Table~\ref{env} lists the variables used by the application. Database URLs take precedence over individual PostgreSQL settings.
+Credentials and connection details specific to each deployment are supplied through environment variables. Table~\ref{env} lists the variables used by the application. Database URLs take precedence over individual PostgreSQL settings.
 
 \small
 \begin{longtable}{L{4.1cm}L{5.7cm}L{2.9cm}}
@@ -694,7 +694,7 @@ Deployment-specific credentials and connection details are supplied through envi
 \endhead
 \verb|SECRET_DEV_KEY| & Rails secret used in development. & development \\
 \midrule
-\verb|SECRET_PROD_KEY| & Rails secret used to sign and encrypt production data, including JWTs, session data, and paper-rating references. Keep it stable while issued references must remain usable. & production \\
+\verb|SECRET_PROD_KEY| & Rails secret used to sign and encrypt production data, including JWTs, session data, and paper rating references. Keep it stable while issued references must remain usable. & production \\
 \midrule
 \verb|DATABASE_URL| & Complete PostgreSQL connection URL. Overrides the individual \verb|POSTGRES_*| variables. & development, production \\
 \midrule
@@ -720,17 +720,17 @@ Deployment-specific credentials and connection details are supplied through envi
 \midrule
 \verb|RAILS_MAX_THREADS| & Maximum Active Record connection pool size; defaults to 5. & all environments \\
 \midrule
-\verb|PUBLIC_BASE_URL| & Public HTTP or HTTPS origin used to generate password-recovery links; required for recovery in production. & production \\
+\verb|PUBLIC_BASE_URL| & Public HTTP or HTTPS origin used to generate password recovery links; required for recovery in production. & production \\
 \midrule
-\path{CORS_ALLOWED_ORIGINS} & Comma-separated origins allowed to make cross-origin API requests. An omitted value disables CORS in production. & production \\
+\path{CORS_ALLOWED_ORIGINS} & Origins allowed to call the API, separated by commas. An omitted value disables requests from other origins in production. & production \\
 \midrule
 \verb|FORCE_SSL| & Set to \verb|true| when the public instance is served through HTTPS. & production \\
 \midrule
 \makecell[l]{\texttt{RS\_PDF\_MAX\_}\\\texttt{DOWNLOAD\_BYTES}} & Maximum accepted publication size in bytes; defaults to 52428800 (50 MiB). & development, production \\
 \midrule
-\verb|RS_PDF_OPEN_TIMEOUT| & Maximum connection-opening time in seconds; defaults to 5. & development, production \\
+\verb|RS_PDF_OPEN_TIMEOUT| & Maximum time allowed to open a connection, in seconds; defaults to 5. & development, production \\
 \midrule
-\verb|RS_PDF_READ_TIMEOUT| & Maximum response-reading time in seconds; defaults to 20. & development, production \\
+\verb|RS_PDF_READ_TIMEOUT| & Maximum time allowed to read a response, in seconds; defaults to 20. & development, production \\
 \midrule
 \path{RS_PDF_PROCESS_TIMEOUT} & Maximum \rspdf execution time in seconds; defaults to 60. & development, production \\
 \midrule
@@ -744,7 +744,7 @@ Deployment-specific credentials and connection details are supplied through envi
 \midrule
 \verb|RS_CONTACT_RATE_LIMIT| & Contact messages allowed for one IP address in ten minutes; defaults to 5. & development, production \\
 \midrule
-\makecell[l]{\texttt{RS\_PDF\_PROCESSING\_}\\\texttt{RATE\_LIMIT}} & Combined publication-processing requests allowed for one reader in one hour; defaults to 30. & development, production \\
+\makecell[l]{\texttt{RS\_PDF\_PROCESSING\_}\\\texttt{RATE\_LIMIT}} & Combined publication processing requests allowed for one reader in one hour; defaults to 30. & development, production \\
 \bottomrule
 \caption{Environment variables of \rsserver.}
 \label{env}
@@ -760,12 +760,12 @@ For local and Compose deployments, create a \verb|.env| file in the \rsserver ro
 The following listing shows a valid \verb|.env| file:
 
 \begin{lstlisting}
-SECRET_PROD_KEY=replace-with-a-long-random-secret
+SECRET_PROD_KEY=replace_with_a_long_random_secret
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=replace-with-a-database-password
+POSTGRES_PASSWORD=replace_with_a_database_password
 POSTGRES_DB=rs_server
-SMTP_USERNAME=replace-with-an-smtp-user
-SMTP_PASSWORD=replace-with-an-smtp-password
+SMTP_USERNAME=replace_with_an_smtp_user
+SMTP_PASSWORD=replace_with_an_smtp_password
 SMTP_DOMAIN_NAME=readersourcing.example
 SMTP_DOMAIN_ADDRESS=smtp.example
 EMAIL_BUG_REPORT=bugs@readersourcing.example
@@ -778,15 +778,15 @@ RAILS_LOG_TO_STDOUT=true
 
 The value of \verb|PUBLIC_BASE_URL| is an origin: it contains the scheme, host, and optional port, but no path, query string, fragment, or credentials. In production, a missing value makes password recovery unavailable rather than deriving a link from an untrusted request host.
 
-\verb|CORS_ALLOWED_ORIGINS| contains exact origins separated by commas. Supplying \verb|*| deliberately opens the cross-origin policy and is inappropriate for an ordinary public deployment. \rsrate requests browser permission for the selected server origin and therefore does not depend on a generated extension origin being listed here. Set \verb|FORCE_SSL=true| only after HTTPS is available at the public origin.
+\verb|CORS_ALLOWED_ORIGINS| contains exact origins separated by commas. Supplying \verb|*| deliberately permits requests from every origin and is inappropriate for an ordinary public deployment. \rsrate requests browser permission for the selected server origin and therefore does not depend on a generated extension origin being listed here. Set \verb|FORCE_SSL=true| only after HTTPS is available at the public origin.
 
 Publication downloads reject private and reserved network addresses by default. The \verb|RS_PDF_ALLOW_PRIVATE_NETWORKS| override is intended only for a controlled deployment in which trusted publications are deliberately served from such a network.
 
-Rate-limit counters use the configured Rails cache store. The supplied Puma configuration runs a single process and uses an in-memory store. Deployments with multiple server processes or replicas must configure a shared Active Support cache store so that every instance contributes to the same request budgets.
+Rate limit counters use the configured Rails cache store. The supplied Puma configuration runs a single process and uses a store in memory. Deployments with multiple server processes or replicas must configure a shared Active Support cache store so that every instance contributes to the same request budgets.
 
 \subsubsection{Sending Mails}
 
-\rsserver supports standard SMTP services for account confirmation, password recovery, password-change notifications, bug reports, and contact messages. Recovery messages contain the single-use link described above; the new password is entered only in \rsserver and is not included in either recovery or confirmation mail. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. Provider-specific API keys can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider documentation defines the required values.
+\rsserver supports standard SMTP services for account confirmation, password recovery, password change notifications, bug reports, and contact messages. Recovery messages contain the link described above, which can be used once; the new password is entered only in \rsserver and is not included in either recovery or confirmation mail. The SMTP provider must expose a host, port 587 with STARTTLS, a user name, a password, and a verified sender domain. API keys specific to a provider can be placed in \verb|SMTP_PASSWORD| when the provider uses an API key as its SMTP credential; the provider documentation defines the required values.
 
 \subsubsection{Connecting To The Database}
 
@@ -807,24 +807,24 @@ Development writes logs to standard output by default. In production, setting \v
 
 \label{rs-pdf}
 
-\rspdf \cite{RS-PDF} is the software library used by \rsserver to edit PDF files and add the required URL when a reader requests to save a publication for later reading. The current implementation appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field. In this integration, \rspdf treats the complete URL as opaque data: the paper-rating reference is created and later validated only by \rsserver.
+\rspdf \cite{RS-PDF} is the software library used by \rsserver to edit PDF files and add the required URL when a reader requests to save a publication for later reading. The current implementation appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field. In this integration, \rspdf treats the complete URL as opaque data: the paper rating reference is created and later validated only by \rsserver.
 
-Its command-line interface allows \rsserver to invoke it directly. Because the components are deployed together, they do not require a separate network service or communication protocol. The executable is distributed as the self-contained \verb|RS_PDF-v2.0.0-shaded.jar| and bundled in the \rsserver \verb|lib| directory.
+Its command line interface allows \rsserver to invoke it directly. Because the components are deployed together, they do not require a separate network service or communication protocol. The executable is distributed as a single shaded JAR named \verb|RS_PDF-v2.0.0-shaded.jar| and bundled in the \rsserver \verb|lib| directory.
 
 \subsection{Implementation and Technology}
 
-\rspdf is developed in Kotlin, an object-oriented programming language that interoperates with the Java Virtual Machine. This interoperability allows developers to reuse software distributed in JAR format and call Java classes directly from Kotlin. The current build targets Java 21 and uses Kotlin 2.4.
+\rspdf is developed in Kotlin, an object oriented programming language that interoperates with the Java Virtual Machine. This interoperability allows developers to reuse software distributed in JAR format and call Java classes directly from Kotlin. The current build targets Java 21 and uses Kotlin 2.4.
 
 This programming language was chosen because it incorporates many modern features and receives robust support. More importantly, the underlying tool used to edit PDF files is \emph{PDFBox},\footnote{\url{https://pdfbox.apache.org/}} a Java library that provides a complete PDF manipulation toolkit. Therefore, \rspdf serves as a wrapper for PDFBox and adds the required reference to the PDFs requested by readers. ZXing\footnote{\url{https://github.com/zxing/zxing}} generates the QR code placed beside the link annotation, Apache Commons CLI parses the execution parameters, and Log4j 2 provides logging.
 
 
-Kotlin was created by JetBrains,\footnote{\url{https://www.jetbrains.com/}} which announced first-class support for Android development with Google in 2017.\footnote{\url{https://blog.jetbrains.com/kotlin/2017/05/kotlin-on-android-now-official/}} In the same year, JetBrains also announced Kotlin/Native, which compiles Kotlin programs to native binaries without requiring the JVM.
+Kotlin was created by JetBrains,\footnote{\url{https://www.jetbrains.com/}} which announced full support for Android development with Google in 2017.\footnote{\url{https://blog.jetbrains.com/kotlin/2017/05/kotlin-on-android-now-official/}} In the same year, JetBrains also announced Kotlin/Native, which compiles Kotlin programs to native binaries without requiring the JVM.
 
 The Kotlin documentation includes an official comparison with Java,\footnote{\url{https://kotlinlang.org/docs/reference/comparison-to-java.html}} and the language has been discussed extensively by software developers.\footnote{\url{https://medium.com/@octskyward/why-kotlin-is-my-next-programming-language-c25c001e26e3}}
 
 \subsection{Package Diagram}
 
-Figure~\ref{fig:package} shows how \rspdf is divided into packages and provides a high-level overview of its internal architecture.
+Figure~\ref{fig:package} shows how \rspdf is divided into packages and provides a general overview of its internal architecture.
 
 \begin{figure}[!tbp]
 \centering
@@ -833,15 +833,15 @@ Figure~\ref{fig:package} shows how \rspdf is divided into packages and provides 
 \label{fig:package}
 \end{figure}
 
-Interaction with \rsserver begins in the \textbf{program} package. The \emph{Program} object parses and validates the command-line options before delegating to the publication controller.
+Interaction with \rsserver begins in the \textbf{program} package. The \emph{Program} object parses and validates the command line options before delegating to the publication controller.
 
-The \textbf{utils} package provides shared filesystem defaults, program constants, and logging configuration. Server addresses are supplied through the required URL argument and are not hard-coded as constants.
+The \textbf{utils} package provides shared filesystem defaults, program constants, and logging configuration. Server addresses are supplied through the required URL argument and are not embedded as constants in the code.
 
-The \textbf{publications} package contains the PDF business logic. Its Controller/Model separation follows the same object-oriented intent as MVC without depending on Rails: the controller discovers one or more PDF files and creates the corresponding models, while each model loads a document, adds the link and QR code, writes metadata, and saves a new file. A View is unnecessary because the result is the edited PDF itself.
+The \textbf{publications} package contains the PDF business logic. Its Controller/Model separation follows the same object oriented intent as MVC without depending on Rails: the controller discovers one or more PDF files and creates the corresponding models, while each model loads a document, adds the link and QR code, writes metadata, and saves a new file. A View is unnecessary because the result is the edited PDF itself.
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:classi-2} shows the main classes of \rspdf. The structure follows Controller/Model responsibilities: \emph{Program} owns process-level parsing and flow, \emph{PublicationController} manages the collection, and \emph{PublicationModel} performs PDF transformations through PDFBox and ZXing.
+Figure~\ref{fig:classi-2} shows the main classes of \rspdf. The structure follows Controller/Model responsibilities: \emph{Program} owns process parsing and flow, \emph{PublicationController} manages the collection, and \emph{PublicationModel} performs PDF transformations through PDFBox and ZXing.
 
 The \emph{Parameters} data class transports the caption, URL, optional authentication token, and optional publication identifier through the controller boundary. This keeps the \emph{PublicationModel} interface stable as related input data evolve.
 
@@ -900,7 +900,7 @@ The \emph{Parameters} data class transports the caption, URL, optional authentic
   \draw[rsdependency] (model) -- (libraries);
 \end{tikzpicture}%
 }
-\caption{High-level class diagram of \rspdf v2.0.0.}
+\caption{General class diagram of \rspdf v2.0.0.}
 \label{fig:classi-2}
 \end{figure}
 
@@ -923,7 +923,7 @@ On Windows use \verb|mvnw.cmd clean verify|. The Maven Wrapper selects the confi
 
 \subsubsection{Command Line Interface}
 
-The behavior of \rspdf is configured through the command-line options in Table~\ref{tab:cli}. Caption and URL are always required. Input and output paths may be omitted only together, in which case the default \verb|data| and \verb|res| directories are used. The authentication token and publication identifier are optional, but if either is supplied then both custom paths and both server values must be supplied.
+The behavior of \rspdf is configured through the command line options in Table~\ref{tab:cli}. Caption and URL are always required. Input and output paths may be omitted only together, in which case the default \verb|data| and \verb|res| directories are used. The authentication token and publication identifier are optional, but if either is supplied then both custom paths and both server values must be supplied.
 
 \small
 \begin{longtable}{L{1.1cm}L{2.6cm}L{6.0cm}L{2.5cm}}
@@ -971,7 +971,7 @@ java -jar C:\lib\RS_PDF-v2.0.0-shaded.jar \
 
 \rsrate~\cite{RS-Rate} is an extension designed to function as a client for the Readersourcing 2.0 ecosystem without requiring access to its website. Compatible with Google Chrome,\footnote{\url{https://www.google.com/chrome/}} Microsoft Edge,\footnote{\url{https://www.microsoft.com/en-us/edge/}} and Mozilla Firefox,\footnote{\url{https://www.mozilla.org/firefox/}} the extension allows users to rate publications directly from their browsers. This eliminates the need to navigate to the main website, streamlining the process of providing ratings for publications.
 
-The primary objective of \rsrate is to enable readers to rate a publication with minimal effort: just a few clicks or keystrokes within the Readersourcing 2.0 ecosystem. In doing so, it contributes to a more dynamic online reading experience. \rsrate is the first client developed for the project beyond the web-based interface available on the main portal.
+The primary objective of \rsrate is to enable readers to rate a publication with minimal effort: just a few clicks or keystrokes within the Readersourcing 2.0 ecosystem. In doing so, it contributes to a more dynamic online reading experience. \rsrate is the first client developed for the project beyond the web interface available on the main portal.
 
 Looking ahead, our vision includes expanding the compatibility of \rsrate to Safari and other popular browsers. Our commitment is to make this rating tool accessible across a broad range of browsers, ensuring users can seamlessly interact with content and provide feedback regardless of their preferred browser. The current Chromium and Firefox targets share the same application source and rating logic.
 
@@ -979,11 +979,11 @@ Looking ahead, our vision includes expanding the compatibility of \rsrate to Saf
 
 \rsrate is an extension for Google Chrome, Microsoft Edge, and Mozilla Firefox. These extensions are developed using standard web technologies such as HTML, CSS, and JavaScript. They are collections of files packaged according to the requirements of each browser. The build process copies and checks all executable assets locally, then produces unpacked Manifest V3 extensions in \verb|dist/chromium| and \verb|dist/firefox|.
 
-The JavaScript component also uses jQuery to simplify DOM selection and manipulation, event management, animations, and AJAX operations. \rsrate relies on these AJAX features to provide responsive interactions with the server. Bootstrap 4 and its jQuery-based plugins provide the markup and interaction behavior used by the extension views. Dependencies remain declared in \verb|package.json| and are resolved through the committed Yarn lockfile.
+The JavaScript component also uses jQuery to simplify DOM selection and manipulation, event management, animations, and AJAX operations. \rsrate relies on these AJAX features to provide responsive interactions with the server. Bootstrap 4 and its plugins based on jQuery provide the markup and interaction behavior used by the extension views. Dependencies remain declared in \verb|package.json| and are resolved through the committed Yarn lockfile.
 
 \subsection{Installation}
 
-\rsrate is freely available on the Google Chrome Web Store. To use it with a Chromium-based browser, follow the link and install the currently available version from the store page:
+\rsrate is freely available on the Google Chrome Web Store. To use it with a browser based on Chromium, follow the link and install the currently available version from the store page:
 \begin{itemize}
 \item \textbf{Google Chrome and Microsoft Edge}: \url{https://chromewebstore.google.com/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg}
 \end{itemize}
@@ -1014,13 +1014,13 @@ yarn verify
 yarn package:firefox
 \end{lstlisting}
 
-The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website-interaction, and publication-content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
+The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website interaction, and publication content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
 
 Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. The permission covers only the selected origin, while any configured application path remains part of the server address.
 
 \subsection{Usage}
 
-Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for a publication. This represents a typical reader visiting a publisher's website to access a paper in PDF format. The figure also shows the first page displayed when the reader opens the client. From this page, the reader can reach either the login page shown in Figure~\ref{fig:login} or the sign-up page. The login page also provides access to a password-recovery page, which requests the email containing the link to the \rsserver password form.
+Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for a publication. This represents a typical reader visiting a publisher's website to access a paper in PDF format. The figure also shows the first page displayed when the reader opens the client. From this page, the reader can reach either the login page shown in Figure~\ref{fig:login} or the registration page. The login page also provides access to a password recovery page, which requests the email containing the link to the \rsserver password form.
 
 \begin{figure}
 \centering
@@ -1036,7 +1036,7 @@ Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for
 \label{fig:login}
 \end{figure}
 
-If a reader has yet to sign up for Readersourcing 2.0, they can navigate from the page shown in Figure~\ref{fig:ux-1} to the one displayed in Figure~\ref{fig:signup} and fill in the sign-up form. Once they complete the standard sign-up and login operations, they will find themselves on the rating page, as shown in Figure~\ref{fig:rating-1}.
+If a reader has yet to register for Readersourcing 2.0, they can navigate from the page shown in Figure~\ref{fig:ux-1} to the one displayed in Figure~\ref{fig:signup} and fill in the registration form. Once they complete the standard registration and login operations, they will find themselves on the rating page, as shown in Figure~\ref{fig:rating-1}.
 
 \begin{figure}
 \centering
@@ -1055,7 +1055,7 @@ If a reader has yet to sign up for Readersourcing 2.0, they can navigate from th
 
 In the central section of the rating page, a reader can use the slider to choose a value in the 0--100 interval. After selecting the desired value, they submit the rating by clicking the green \emph{Rate} button. The options page also allows the reader to make the rating anonymous. Readers must still be logged in when submitting an anonymous rating so that the system can prevent spam and repeated ratings of the same publication. Apart from these checks, the rating is processed without exposing the reader's identity.
 
-If the reader prefers to rate the publication later, they can click the \emph{Save for later} button. This option starts the publication-editing procedure, which stores a reference URL inside the PDF file being viewed. Once the procedure is complete, the \emph{Save for later} button becomes a \emph{Download} button, as shown in Figure~\ref{fig:rating-2}.
+If the reader prefers to rate the publication later, they can click the \emph{Save for later} button. This option starts the publication annotation procedure, which stores a reference URL inside the PDF file being viewed. Once the procedure is complete, the \emph{Save for later} button becomes a \emph{Download} button, as shown in Figure~\ref{fig:rating-2}.
 
 \begin{figure}
 \centering
@@ -1064,27 +1064,27 @@ If the reader prefers to rate the publication later, they can click the \emph{Sa
 \label{fig:rating-2}
 \end{figure}
 
-The reader can then download the link-annotated publication. The refresh button, located to the right of the \emph{Download} button, retrieves a new copy of the publication, annotates it, and makes it available again. This feature is useful when an author updates a publication after the first download.
+The reader can then download the annotated publication. The refresh button, located to the right of the \emph{Download} button, retrieves a new copy of the publication, annotates it, and makes it available again. This feature is useful when an author updates a publication after the first download.
 
-The downloaded PDF contains a new final page with the rating URL. The URL includes the encrypted paper-rating reference associated with the reader and publication, not the reader's JWT. The reference has no automatic expiration and remains independent of login and logout operations. Figure~\ref{fig:reference} shows an example opened in a PDF reader.
+The downloaded PDF contains a new final page with the rating URL. The URL includes the encrypted paper rating reference associated with the reader and publication, not the reader's JWT. The reference has no automatic expiration and remains independent of login and logout operations. Figure~\ref{fig:reference} shows an example opened in a PDF reader.
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{figures/reference.png}
-\caption{A publication link-annotated through \rsrate.}
+\caption{A publication annotated through \rsrate.}
 \label{fig:reference}
 \end{figure}
 
-Following the reference takes the reader to a dedicated page in \rsserver. This interface allows them to rate the publication independently of the browser extension used to store the reference. For example, a reader can transfer the link-annotated publication to a tablet and use its built-in browser to submit the rating. Figure~\ref{fig:browser} shows the interface displayed after the reader follows the stored reference. The reader must have a current authenticated session, so another person who receives a copy of the publication cannot use the reference on their behalf. If the reader has logged out, they sign in again and reopen the same reference; the PDF itself does not need to be annotated again.
+Following the reference takes the reader to a dedicated page in \rsserver. This interface allows them to rate the publication independently of the browser extension used to store the reference. For example, a reader can transfer the annotated publication to a tablet and use its integrated browser to submit the rating. Figure~\ref{fig:browser} shows the interface displayed after the reader follows the stored reference. The reader must have a current authenticated session, so another person who receives a copy of the publication cannot use the reference on their behalf. If the reader has logged out, they sign in again and reopen the same reference; the PDF itself does not need to be annotated again.
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.7]{figures/browser.png}
-\caption{The server-side interface to rate a publication.}
+\caption{The server interface to rate a publication.}
 \label{fig:browser}
 \end{figure}
 
-Whenever a reader rates a publication, \rsserver updates the scores computed by both the RSM and TRM models. \rsrate displays the two publication scores at the bottom of the rating page, as shown in Figures~\ref{fig:rating-1} and~\ref{fig:rating-2}. The reader can view their own scores by clicking the profile button in the upper-right corner. The profile page shown in Figure~\ref{fig:profile} also allows the reader to change their password.
+Whenever a reader rates a publication, \rsserver updates the scores computed by both the RSM and TRM models. \rsrate displays the two publication scores at the bottom of the rating page, as shown in Figures~\ref{fig:rating-1} and~\ref{fig:rating-2}. The reader can view their own scores by clicking the profile button in the upper right corner. The profile page shown in Figure~\ref{fig:profile} also allows the reader to change their password.
 
 \begin{figure}
 \centering
@@ -1097,13 +1097,13 @@ Whenever a reader rates a publication, \rsserver updates the scores computed by 
 
 \label{rs-py}
 
-\rspy \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem, providing a fully functional Python implementation of the models presented by \citet{Soprano2019}. These models are also encapsulated by the server-side application of Readersourcing 2.0, as described in Section~\ref{rs-server}.
+\rspy \cite{RS-Py} is an additional component of the Readersourcing 2.0 ecosystem, providing a fully functional Python implementation of the models presented by \citet{Soprano2019}. These models are also encapsulated by the server application of Readersourcing 2.0, as described in Section~\ref{rs-server}.
 
 Developers familiar with Python can use \rspy to generate and test new simulations of readers rating a set of publications. They can alter the internal logic of the models to test new approaches without having to fork and edit the full Readersourcing 2.0 implementation.
 
 \subsection{Implementation and Technology}
 
-\rspy is a collection of \emph{Jupyter Notebooks}. Jupyter\footnote{\url{https://jupyter.org/}} is an open-source web application powered by Python\footnote{\url{https://www.python.org/}} for creating and sharing documents containing live code, equations, visualizations, and narrative text. Notebooks are composed of cells that can be run independently, providing a step-by-step overview of the implemented computations.
+\rspy is a collection of \emph{Jupyter Notebooks}. Jupyter\footnote{\url{https://jupyter.org/}} is an open source web application powered by Python\footnote{\url{https://www.python.org/}} for creating and sharing documents containing live code, equations, visualizations, and narrative text. Notebooks are composed of cells that can be run independently, providing a detailed overview of the implemented computations.
 
 \subsection{Installation}
 
@@ -1126,15 +1126,15 @@ On Windows, activate the environment with \verb|.venv\Scripts\activate|.
     \item The \verb|models| folder stores the output of these models and the computed quantities.
     \item The \verb|notebooks| folder contains Jupyter notebooks used to generate datasets, implement the models, and analyze experiments.
     \item The \verb|scripts| folder is generated on demand and contains implementations of the Jupyter notebooks as pure Python scripts.
-    \item The \verb|src| folder contains the conversion utility and the in-memory domain implementation.
+    \item The \verb|src| folder contains the conversion utility and the domain implementation held in memory.
     \item The \verb|tests| folder contains the numerical and utility characterization tests.
-    \item The \verb|utils| folder contains auxiliary tooling, including the power-law generator.
+    \item The \verb|utils| folder contains auxiliary tooling, including the power law generator.
 \end{itemize}
 
 Within the \verb|notebooks| folder, the principal files are:
 
 \begin{itemize}
-    \item \verb|1.Seed-Power-Law.ipynb| generates synthetic data using power-law distributions;
+    \item \verb|1.Seed-Power-Law.ipynb| generates synthetic data using power law distributions;
     \item \verb|2.Readersourcing.ipynb| implements and runs the RSM model;
     \item \verb|3.TrueReview.ipynb| implements and runs the TRM model;
     \item \verb|4.Experiments.ipynb| supports experimental analysis;
@@ -1145,13 +1145,13 @@ The \verb|src/Convert.py| script converts the numbered notebooks into pure Pytho
 
 The behavior of the notebooks can be customized by modifying the parameter settings found in their initial cells. To run them, navigate to the \verb|notebooks| folder and type \verb|jupyter lab|. This command starts the Jupyter server and opens the interface from which the notebooks can be executed in numerical order.
 
-The in-memory implementation under \verb|src/rs_py| and its characterization tests reproduce the reader, publication, and rating behavior currently shared with \rsserver. They complement rather than restrict the principal purpose of \rspy: developers remain free to alter the internal logic of the notebooks and test new approaches. Additional object-oriented simulation work, including an explicit author entity, is maintained in the Readersourcing\_OO repository.\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}}
+The implementation held in memory under \verb|src/rs_py| and its characterization tests reproduce the reader, publication, and rating behavior currently shared with \rsserver. They complement rather than restrict the principal purpose of \rspy: developers remain free to alter the internal logic of the notebooks and test new approaches. Additional object oriented simulation work, including an explicit author entity, is maintained in the Readersourcing\_OO repository.\footnote{\url{https://github.com/EddyMaddalena/Readersourcing_OO}}
 
 \section{Overview}
 
 \label{overview}
 
-Figure~\ref{fig:scenario} summarizes the capabilities of Readersourcing 2.0. In this example, four readers---\verb|RD1|, \verb|RD2|, \verb|RD3|, and \verb|RD4|---use \rsrate to rate publication \verb|P1|. Readers \verb|RD1|, \verb|RD2|, and \verb|RD3| choose \emph{Save for later} and receive a link-annotated version of the publication, denoted by \verb|P1+Link|.
+Figure~\ref{fig:scenario} summarizes the capabilities of Readersourcing 2.0. In this example, four readers---\verb|RD1|, \verb|RD2|, \verb|RD3|, and \verb|RD4|---use \rsrate to rate publication \verb|P1|. Readers \verb|RD1|, \verb|RD2|, and \verb|RD3| choose \emph{Save for later} and receive a version of the publication annotated with a link, denoted by \verb|P1+Link|.
 
 After some time, \verb|RD1| opens \verb|P1+Link| with a preferred PDF reader. \verb|RD2| sends it to a tablet, while \verb|RD3| opens it in a desktop browser. By following the link or scanning the QR code added through \rspdf, they reach the dedicated \rsserver page and provide their ratings. In contrast, \verb|RD4| rates \verb|P1| immediately through the \rsrate interface.
 
