@@ -442,7 +442,7 @@ The auxiliary association permits a user to have zero or more active authenticat
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry. Authentication and Readersourcing computations are delegated to focused command and strategy objects rather than being absorbed into the controllers.
+Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry, while the non-persistent \emph{PaperRatingReference} value object represents the durable reference stored in an annotated publication. Authentication, reference validation, and Readersourcing computations are delegated to focused objects rather than being absorbed into the controllers.
 
 \begin{figure}[!tbp]
 \centering
@@ -506,6 +506,12 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
     \nodepart{second}
     encode(), decode()
   };
+  \node[rsclass, below=of jwt] (paperreference) {
+    \textbf{PaperRatingReference}
+    \nodepart{second}
+    issue()\\
+    resolve()
+  };
 
   \node[rsclass, below=2.0cm of rating] (readersourcing) {
     \textbf{Readersourcing}
@@ -538,6 +544,7 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
   \draw[rsdependency] (application) -- (authorizer);
   \draw[rsdependency] (authenticator) -- (jwt);
   \draw[rsdependency] (authorizer) -- (jwt);
+  \draw[rsdependency] (publication) -- (paperreference);
   \draw[rsarrow] (rating) -- (readersourcing);
   \draw[rsarrow] (readersourcing) -- node[right] {\scriptsize delegates} (strategy);
   \draw[rsarrow] (rsm) -- (strategy);
@@ -552,6 +559,8 @@ Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implem
 
 The \emph{ApplicationController} contains shared authorization hooks for both API and server-side requests, while the \emph{AuthenticationController} handles login and logout. The \emph{Authenticator}, \emph{Authorizer}, and \emph{AuthenticationTokenRevoker} command objects isolate credential verification, token issuance, token validation, and revocation from HTTP concerns.
 
+The \emph{PaperRatingReference} value object similarly isolates the creation and validation of references stored in link-annotated publications. It uses authenticated encryption with a dedicated purpose and binds each reference to one reader and one publication without persisting a login credential in the PDF.
+
 For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
 
 Authentication establishes the identity of the reader making the request, while resource-level authorization determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
@@ -564,7 +573,7 @@ The Rails session identifier is renewed after successful authentication, before 
 
 Logout is a state-changing operation and is therefore available only through an HTTP \verb|POST| request. HTML state-changing requests require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token-based API boundary instead of the browser-session CSRF boundary.
 
-In the save-for-later workflow, the token embedded in a link-annotated PDF remains a signed marker of the reader who created that reference. Following the reference still requires a current authenticated session, and the embedded marker is compared with the newly authenticated reader; it does not by itself authorize an API request.
+In the save-for-later workflow, \rsserver places a dedicated paper-rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the seven-day JWT and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
 
 Password recovery uses a separate, single-use credential. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
@@ -681,7 +690,7 @@ Deployment-specific credentials and connection details are supplied through envi
 \endhead
 \verb|SECRET_DEV_KEY| & Rails secret used in development. & development \\
 \midrule
-\verb|SECRET_PROD_KEY| & Rails secret used to sign and encrypt production data, including JWTs and session data. & production \\
+\verb|SECRET_PROD_KEY| & Rails secret used to sign and encrypt production data, including JWTs, session data, and paper-rating references. Keep it stable while issued references must remain usable. & production \\
 \midrule
 \verb|DATABASE_URL| & Complete PostgreSQL connection URL. Overrides the individual \verb|POSTGRES_*| variables. & development, production \\
 \midrule
@@ -782,7 +791,7 @@ Development writes logs to standard output by default. In production, setting \v
 
 \label{rs-pdf}
 
-\rspdf \cite{RS-PDF} is the software library used by \rsserver to edit PDF files and add the required URL when a reader requests to save a publication for later reading. The current implementation appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field.
+\rspdf \cite{RS-PDF} is the software library used by \rsserver to edit PDF files and add the required URL when a reader requests to save a publication for later reading. The current implementation appends a final page containing a clickable rating URL and a QR code, and stores the same URL in the PDF \verb|BaseUrl| metadata field. In this integration, \rspdf treats the complete URL as opaque data: the paper-rating reference is created and later validated only by \rsserver.
 
 Its command-line interface allows \rsserver to invoke it directly. Because the components are deployed together, they do not require a separate network service or communication protocol. The executable is distributed as the self-contained \verb|RS_PDF-v2.0.0-shaded.jar| and bundled in the \rsserver \verb|lib| directory.
 
@@ -1041,7 +1050,7 @@ If the reader prefers to rate the publication later, they can click the \emph{Sa
 
 The reader can then download the link-annotated publication. The refresh button, located to the right of the \emph{Download} button, retrieves a new copy of the publication, annotates it, and makes it available again. This feature is useful when an author updates a publication after the first download.
 
-The downloaded PDF contains a new final page with the rating URL. Figure~\ref{fig:reference} shows an example opened in a PDF reader.
+The downloaded PDF contains a new final page with the rating URL. The URL includes the encrypted paper-rating reference associated with the reader and publication, not the reader's JWT. The reference has no automatic expiration and remains independent of login and logout operations. Figure~\ref{fig:reference} shows an example opened in a PDF reader.
 
 \begin{figure}
 \centering
@@ -1050,7 +1059,7 @@ The downloaded PDF contains a new final page with the rating URL. Figure~\ref{fi
 \label{fig:reference}
 \end{figure}
 
-Following the reference takes the reader to a dedicated page in \rsserver. This interface allows them to rate the publication independently of the browser extension used to store the reference. For example, a reader can transfer the link-annotated publication to a tablet and use its built-in browser to submit the rating. Figure~\ref{fig:browser} shows the interface displayed after the reader follows the stored reference. The reader must authenticate again so that another person who receives a copy of the publication cannot use the reference on their behalf.
+Following the reference takes the reader to a dedicated page in \rsserver. This interface allows them to rate the publication independently of the browser extension used to store the reference. For example, a reader can transfer the link-annotated publication to a tablet and use its built-in browser to submit the rating. Figure~\ref{fig:browser} shows the interface displayed after the reader follows the stored reference. The reader must have a current authenticated session, so another person who receives a copy of the publication cannot use the reference on their behalf. If the reader has logged out, they sign in again and reopen the same reference; the PDF itself does not need to be annotated again.
 
 \begin{figure}
 \centering
