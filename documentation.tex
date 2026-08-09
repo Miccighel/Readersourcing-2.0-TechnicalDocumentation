@@ -442,7 +442,7 @@ The auxiliary association permits a user to have zero or more active authenticat
 
 \subsection{Class Diagram}
 
-Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry, while the non-persistent \emph{PaperRatingReference} value object represents the durable reference stored in an annotated publication. Authentication, reference validation, and Readersourcing computations are delegated to focused objects rather than being absorbed into the controllers.
+Figure~\ref{fig:class-1} shows the main responsibilities of the \rsserver implementation. Rails controllers map HTTP operations to the domain models, while JSON and server-rendered views present their results. The three persistent domain models encapsulate the Readersourcing logic and associations described in the previous section. The auxiliary \emph{AuthenticationToken} model maintains the active-login registry, while non-persistent objects represent durable paper references and request-rate policies. Authentication, reference validation, request throttling, and Readersourcing computations are delegated to focused objects rather than being absorbed into the controllers.
 
 \begin{figure}[!tbp]
 \centering
@@ -561,6 +561,8 @@ The \emph{ApplicationController} contains shared authorization hooks for both AP
 
 The \emph{PaperRatingReference} value object similarly isolates the creation and validation of references stored in link-annotated publications. It uses authenticated encryption with a dedicated purpose and binds each reference to one reader and one publication without persisting a login credential in the PDF.
 
+The \emph{RequestRateLimit} value object describes each request budget and provides opaque identities for the corresponding cache counters. Controllers apply these policies through the Rails rate-limiting boundary, leaving credential verification, mail delivery, publication handling, and the Readersourcing domain objects unaware of throttling concerns.
+
 For REST clients, relying only on server-side session data to identify the logged-in user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The server-rendered workflow can still keep the same token in its Rails session.
 
 Authentication establishes the identity of the reader making the request, while resource-level authorization determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
@@ -576,6 +578,8 @@ Logout is a state-changing operation and is therefore available only through an 
 In the save-for-later workflow, \rsserver places a dedicated paper-rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the seven-day JWT and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
 
 Password recovery uses a separate, single-use credential. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a server-rendered form in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
+
+Request-rate policies bound operations that can be abused or consume disproportionate resources. By default, one IP address may make ten authentication attempts in three minutes and five password-recovery requests in fifteen minutes; one normalized email address may receive three recovery requests in thirty minutes; one IP address may send five contact messages in ten minutes; and one authenticated reader may initiate thirty combined publication-download, inspection, extraction, and annotation operations in one hour. Exceeding a budget returns HTTP status \verb|429 Too Many Requests| with a \verb|Retry-After| header and does not execute the protected action. Cache identities are SHA-256 digests rather than plain email addresses or IP values. Displaying the password-recovery form does not consume a recovery request.
 
 \begin{figure}[H]
 \centering
@@ -731,6 +735,16 @@ Deployment-specific credentials and connection details are supplied through envi
 \path{RS_PDF_PROCESS_TIMEOUT} & Maximum \rspdf execution time in seconds; defaults to 60. & development, production \\
 \midrule
 \makecell[l]{\texttt{RS\_PDF\_ALLOW\_}\\\texttt{PRIVATE\_NETWORKS}} & Set to \verb|true| only when publications must be fetched from a trusted private network. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_AUTHENTICATION\_}\\\texttt{RATE\_LIMIT}} & Authentication attempts allowed for one IP address in three minutes; defaults to 10. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_PASSWORD\_RECOVERY\_IP\_}\\\texttt{RATE\_LIMIT}} & Recovery requests allowed for one IP address in fifteen minutes; defaults to 5. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_PASSWORD\_RECOVERY\_}\\\texttt{ACCOUNT\_RATE\_LIMIT}} & Recovery requests allowed for one normalized email address in thirty minutes; defaults to 3. & development, production \\
+\midrule
+\verb|RS_CONTACT_RATE_LIMIT| & Contact messages allowed for one IP address in ten minutes; defaults to 5. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_PDF\_PROCESSING\_}\\\texttt{RATE\_LIMIT}} & Combined publication-processing requests allowed for one reader in one hour; defaults to 30. & development, production \\
 \bottomrule
 \caption{Environment variables of \rsserver.}
 \label{env}
@@ -767,6 +781,8 @@ The value of \verb|PUBLIC_BASE_URL| is an origin: it contains the scheme, host, 
 \verb|CORS_ALLOWED_ORIGINS| contains exact origins separated by commas. Supplying \verb|*| deliberately opens the cross-origin policy and is inappropriate for an ordinary public deployment. \rsrate requests browser permission for the selected server origin and therefore does not depend on a generated extension origin being listed here. Set \verb|FORCE_SSL=true| only after HTTPS is available at the public origin.
 
 Publication downloads reject private and reserved network addresses by default. The \verb|RS_PDF_ALLOW_PRIVATE_NETWORKS| override is intended only for a controlled deployment in which trusted publications are deliberately served from such a network.
+
+Rate-limit counters use the configured Rails cache store. The supplied Puma configuration runs a single process and uses an in-memory store. Deployments with multiple server processes or replicas must configure a shared Active Support cache store so that every instance contributes to the same request budgets.
 
 \subsubsection{Sending Mails}
 
