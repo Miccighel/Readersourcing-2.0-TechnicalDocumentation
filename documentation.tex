@@ -314,6 +314,8 @@ For example, Table~\ref{tab:rest} presents a subset of the RESTful interface of 
 }
 \end{lstlisting}
 
+Publication records are shared among readers. The REST interface therefore exposes their creation and retrieval, together with dedicated domain operations such as fetching and refreshing, but does not expose generic update or deletion operations. This prevents one authenticated reader from arbitrarily rewriting or removing a shared publication and its associated ratings.
+
 \begin{table}
 \centering
 \begin{threeparttable}
@@ -345,10 +347,6 @@ For example, Table~\ref{tab:rest} presents a subset of the RESTful interface of 
 \path{/publications/fetch.json} & POST & Fetch & Fetches a Publication from the given URL. \\
 \midrule
 \path{/publications/1/refresh.json} & GET & Refresh & Fetches the Publication with identifier equal to 1 again. \\
-\midrule
-\path{/publications/1.json} & PUT & Update & Updates the Publication with identifier equal to 1. \\
-\midrule
-\path{/publications/1.json} & DELETE & Delete & Deletes the Publication with identifier equal to 1.\\
 \midrule
 \dots & \dots & \dots & \dots \\
 \bottomrule
