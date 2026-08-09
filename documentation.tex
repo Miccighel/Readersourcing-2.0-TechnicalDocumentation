@@ -569,11 +569,11 @@ Authentication establishes the identity of the reader making the request, while 
 
 When a user logs in, the supplied credentials are verified against the stored password digest and the account confirmation state. The credentials themselves are not placed in the token. If verification succeeds, \rsserver creates an active token record and issues a JWT signed with HS256 whose payload contains the user identifier, the client IP address, its unique \verb|jti| identifier, and a standard expiration claim set to seven days after issuance.
 
-The browser client stores the returned token in its application cookie and attaches it to subsequent API requests through the \verb|Authorization| header. The header accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The workflow rendered by the server also keeps a duplicate token in the Rails session, which is implemented through a cookie marked \verb|HttpOnly|. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, referenced user, and corresponding active token record before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
+The authentication response returns the JWT for REST clients. These clients attach it to protected requests through the \verb|Authorization| header, which accepts both the direct token format used by \rsrate and the conventional \verb|Bearer <token>| format. The web interface instead keeps the token only in the encrypted Rails session, which is implemented through a cookie marked \verb|HttpOnly|; browser scripts neither read the JWT nor add it to request headers. Upon receiving a protected request, the \emph{Authorizer} verifies the JWT signature, expiration time, IP address, referenced user, and corresponding active token record before allowing the request to proceed. Figure~\ref{fig:auth} provides an intuitive illustration of this authentication process.
 
 The Rails session identifier is renewed after successful authentication, before the token is stored, and is renewed again when the reader logs out. Logout removes the active token record for the current browser or API session and leaves the reader's other devices authenticated. A successful password change or reset removes every active token belonging to that reader; account deletion removes the same records through the user association. The signed value remains immutable, but without its active record it can no longer authorize a protected request.
 
-Logout changes application state and is therefore available only through an HTTP \verb|POST| request. HTML requests that change state require a valid Rails authenticity token. JSON API requests remain stateless: a request carrying a JSON body, or an authenticated JSON request carrying an \verb|Authorization| header, is handled through the token authentication boundary instead of the browser session CSRF boundary.
+Logout changes application state and is therefore available only through an HTTP \verb|POST| request. HTML requests that change state require a valid Rails authenticity token. JSON requests from the web interface use the Rails session and require the same authenticity token. JSON requests that do not rely on that session remain stateless; protected API requests carry the JWT through \verb|Authorization| and are handled through the token authentication boundary.
 
 In the save for later workflow, \rsserver places a dedicated paper rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the JWT, which is valid for seven days, and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
 
@@ -587,8 +587,26 @@ Responses set \verb|X-Frame-Options| to \verb|DENY|, \verb|X-Content-Type-Option
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{figures/autenticazione.png}
-\caption{Representation of the token authentication process (NOT UML).}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+  \node[rsbox, minimum width=2.5cm, align=center] (reader) at (0,0) {\textbf{Reader}};
+  \node[rsbox, minimum width=3.2cm, align=center] (browser) at (5.5,0) {\textbf{Web interface}};
+  \node[rsbox, minimum width=2.8cm, align=center] (server) at (12,0) {\textbf{RS\_Server}};
+
+  \draw[dashed] (reader.south) -- (0,-8.1);
+  \draw[dashed] (browser.south) -- (5.5,-8.1);
+  \draw[dashed] (server.south) -- (12,-8.1);
+
+  \draw[rsarrow] (0,-1) -- node[above] {\small submits credentials} (5.5,-1);
+  \draw[rsarrow] (5.5,-2.1) -- node[above] {\small \texttt{POST /authenticate} with JSON and CSRF} (12,-2.1);
+  \draw[rsarrow] (12,-3.2) -- node[above] {\small JWT response and \texttt{HttpOnly} Rails session} (5.5,-3.2);
+  \draw[rsarrow] (5.5,-4.3) -- node[above] {\small displays the authenticated interface} (0,-4.3);
+  \draw[rsarrow] (0,-5.4) -- node[above] {\small requests a protected action} (5.5,-5.4);
+  \draw[rsarrow] (5.5,-6.5) -- node[above] {\small JSON and CSRF; session cookie sent automatically} (12,-6.5);
+  \draw[rsarrow] (12,-7.6) -- node[above] {\small authorized response} (5.5,-7.6);
+\end{tikzpicture}%
+}
+\caption{Authentication process of the web interface. REST clients use the returned JWT through the \texttt{Authorization} header.}
 \label{fig:auth}
 \end{figure}
 
