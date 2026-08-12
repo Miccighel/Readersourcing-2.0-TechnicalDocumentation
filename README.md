@@ -6,7 +6,7 @@ This is the official repository for the technical documentation of the Readersou
 
 This **technical documentation** provides a detailed overview of the Readersourcing 2.0 ecosystem, offering insights into each of its components. Whether you are a developer or a user, this documentation serves as a comprehensive resource for understanding the architecture and functionality of the Readersourcing 2.0 ecosystem.
 
-The current edition also records the verified software requirements, communication interfaces, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py.
+It records the verified software requirements, communication interfaces, and operational setup of RS_Server, RS_PDF, RS_Rate, and RS_Py.
 
 <h1>Build</h1>
 
