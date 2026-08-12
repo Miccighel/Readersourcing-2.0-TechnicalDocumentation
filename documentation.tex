@@ -332,7 +332,7 @@ Operations that regenerate annotated files or change a reader's subscription pre
 \midrule
 \path{/publications/1.json} & GET & Show & Returns the Publication with identifier equal to 1.\\
 \midrule
-\path{/publications/lookup.json} & POST & Lookup & Searches for a Publication; if it does not exist, it is fetched from the given URL. \\
+\path{/publications/lookup.json} & POST & Lookup & Searches for a Publication by its URL without fetching it. \\
 \midrule
 \path{/publications/random.json} & GET & Random & Returns a random Publication. \\
 \midrule
@@ -342,11 +342,13 @@ Operations that regenerate annotated files or change a reader's subscription pre
 \midrule
 \path{/publications.json} & POST & Create & Creates a new Publication. \\
 \midrule
-\path{/publications/is_fetchable.json} & POST & Is Fetchable & Checks if the provided URL contains a fetchable Publication. \\
+\path{/publications/is_fetchable.json} & POST & Is Fetchable & Retrieves and opens the bounded source as a PDF for API inspection. \\
 \midrule
 \path{/publications/extract.json} & POST & Extract & Extracts the rating URL from an annotated Publication. \\
 \midrule
-\path{/publications/fetch.json} & POST & Fetch & Fetches a Publication from the given URL. \\
+\path{/publications/fetch.json} & POST & Fetch & Retrieves, annotates, verifies, and publishes a Publication. \\
+\midrule
+\path{/publications/fetch_upload.json} & POST & Fetch Upload & Performs the same preparation from an uploaded original PDF. \\
 \midrule
 \path{/publications/1/refresh.json} & POST & Refresh & Fetches the Publication with identifier equal to 1 again. \\
 \midrule
@@ -576,6 +578,10 @@ The Rails session identifier is renewed after successful authentication, before 
 Logout changes application state and is therefore available only through an HTTP \verb|POST| request. HTML requests that change state require a valid Rails authenticity token. JSON requests from the web interface use the Rails session and require the same authenticity token. JSON requests that do not rely on that session remain stateless; protected API requests carry the JWT through \verb|Authorization| and are handled through the token authentication boundary.
 
 In the save for later workflow, \rsserver places a dedicated paper rating reference in the URL supplied to \rspdf. Its encrypted payload contains the reader and publication identifiers and has no automatic expiration. It is separate from the JWT, which is valid for seven days, and cannot authorize an API request. Following the reference always requires a current authenticated session, after which the server verifies that the reference belongs to both the selected publication and the authenticated reader. Logout, password changes, and password resets therefore do not invalidate an annotated PDF. Removing its reader or publication makes the reference unusable.
+
+The web interface and \rsrate do not download a publication merely because a reader enters a URL or opens the extension. They first report that the source is ready to prepare, and the real operation starts when the reader requests the prepared PDF. \rsserver then retrieves the source once under the configured address, redirect, timeout, and size policies. The declared content type is retained as an indication, while the file header and the PDF parser determine whether the received content is a usable PDF. Private and reserved network addresses remain refused unless a controlled deployment enables the documented override.
+
+The same preparation object is used for remote and uploaded sources. An upload provides an alternative when a publisher requires access through the reader's browser session or when the remote source is otherwise unavailable. The source is opened before \rspdf is invoked and a PDF that is malformed, encrypted, unsupported, or already contains a \verb|BaseUrl| rating reference is refused with a specific status. \rspdf writes into temporary storage. Before the generated file replaces any existing reader copy, \rsserver opens it again and verifies that it contains exactly one additional page and the expected rating URL. A failed process or final verification leaves the previous copy untouched. Both user interfaces translate the stable preparation statuses into an explicit title, explanation, retry action, and upload option where applicable.
 
 Password recovery uses a separate credential that can be used once. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a form rendered by the server in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
@@ -1077,7 +1083,9 @@ If a reader has yet to register for Readersourcing 2.0, they can navigate from t
 
 In the central section of the rating page, a reader can use the slider to choose a value in the 0--100 interval. After selecting the desired value, they submit the rating by clicking the green \emph{Rate} button. The options page also allows the reader to make the rating anonymous. Readers must still be logged in when submitting an anonymous rating so that the system can prevent spam and repeated ratings of the same publication. Apart from these checks, the rating is processed without exposing the reader's identity.
 
-If the reader prefers to rate the publication later, they can click the \emph{Save for later} button. This option starts the publication annotation procedure, which stores a reference URL inside the PDF file being viewed. Once the procedure is complete, the \emph{Save for later} button becomes a \emph{Download} button, as shown in Figure~\ref{fig:rating-2}.
+If the reader prefers to rate the publication later, they can use the \emph{Download} button in the \emph{Save For Later} section. Before the operation begins, the extension reports that the publication is ready to prepare. During the request, the same status area reports validation, annotation, and final verification. Once the procedure is complete, the prepared publication can be opened, as shown in Figure~\ref{fig:rating-2}.
+
+If the publication server requires access through the reader's browser session or cannot be reached, the interface explains the condition and displays the local PDF alternative. The reader can upload the original file already present on the device without changing the publication URL used by the domain model. This source follows the same validation and verification procedure as a direct retrieval. Other conditions, including size limits, encrypted or malformed PDFs, annotation failures, and verification failures, are reported separately instead of being presented as a generic download error.
 
 \begin{figure}
 \centering
