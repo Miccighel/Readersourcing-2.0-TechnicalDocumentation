@@ -2,6 +2,8 @@
 
 This is the official repository for the technical documentation of the Readersourcing 2.0 ecosystem. The repository is a <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">Git submodule</a> of the main project, which can be found by following the links below.
 
+The current development line documents version **2.0.0** of the software components.
+
 <h1>Description</h1>
 
 This **technical documentation** provides a detailed overview of the Readersourcing 2.0 ecosystem, offering insights into each of its components. Whether you are a developer or a user, this documentation serves as a comprehensive resource for understanding the architecture and functionality of the Readersourcing 2.0 ecosystem.
