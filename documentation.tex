@@ -642,7 +642,7 @@ This modality downloads and initializes \rsserver directly on the local machine 
 
 \subsubsubsection{How To}
 
-Clone the \rsserver repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} navigate to its root directory, create the \verb|.env| file described in Section~\ref{set-var}, and run:
+Clone the \rsserver repository,\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Server}} navigate to its root directory, copy \verb|.env.example| to \verb|.env| as described in Section~\ref{set-var}, and run:
 
 \begin{lstlisting}
 bundle install
@@ -661,7 +661,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \begin{enumerate}
 \item change to the main directory with \verb|cd|;
-\item create and populate the \verb|.env| file;
+\item copy \verb|.env.example| to \verb|.env| and populate it;
 \item \verb|bundle install|;
 \item \verb|node .yarn/releases/yarn-3.6.3.cjs install --immutable|;
 \item \verb|bin/rails db:create|;
@@ -672,7 +672,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production.
+Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated.
 
 \subsubsubsection{Requirements}
 
@@ -682,7 +682,7 @@ Docker Compose builds \rsserver from the project source tree and starts it toget
 
 \subsubsubsection{How To}
 
-Clone the repository, create the \verb|.env| file, ensure that the Docker Engine is running, and execute:
+Clone the repository, copy \verb|.env.example| to \verb|.env| and replace its example values, ensure that the Docker Engine is running, and execute:
 
 \begin{lstlisting}
 docker compose up --build
@@ -696,13 +696,13 @@ Sample data remain optional:
 docker compose run --rm rs_server_webapp bin/rails db:seed
 \end{lstlisting}
 
-Use \verb|docker compose down| to stop the services. The named PostgreSQL volume is retained so that application data survive ordinary container recreation.
+Use \verb|docker compose down| to stop the services. The named volumes are retained so that database records and prepared publications survive ordinary container recreation.
 
 \paragraph{Quick Cheatsheet}
 
 \begin{itemize}
 \item change to the main directory with \verb|cd|;
-\item create and populate the \verb|.env| file;
+\item copy \verb|.env.example| to \verb|.env| and populate it;
 \item \verb|docker compose up --build|;
 \item \verb|docker compose run --rm rs_server_webapp bin/rails db:seed| (optional);
 \item \verb|docker compose down| (to stop the services).
@@ -783,7 +783,7 @@ Credentials and connection details specific to each deployment are supplied thro
 
 \label{set-var}
 
-For local and Compose deployments, create a \verb|.env| file in the \rsserver root and populate it using \verb|key=value| entries. Do not quote secrets unless the selected environment loader requires it, and never commit the file.
+For local and Compose deployments, copy \verb|.env.example| to \verb|.env| in the \rsserver root and replace the example values using \verb|key=value| entries. Do not quote secrets unless the selected environment loader requires it, and never commit the resulting \verb|.env| file.
 
 The following listing shows a valid \verb|.env| file:
 
@@ -1011,7 +1011,7 @@ The JavaScript component also uses jQuery to simplify DOM selection and manipula
 
 \subsection{Installation}
 
-\rsrate is freely available on the Google Chrome Web Store. To use it with a browser based on Chromium, follow the link and install the currently available version from the store page:
+The original 2019 release of \rsrate remains available on the Google Chrome Web Store. The current development source produces the Manifest V3 packages described in the following section. To install the original release with a browser based on Chromium, use the store page:
 \begin{itemize}
 \item \textbf{Google Chrome and Microsoft Edge}: \url{https://chromewebstore.google.com/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg}
 \end{itemize}
@@ -1036,13 +1036,13 @@ yarn install --immutable
 yarn verify
 \end{lstlisting}
 
-\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. The Firefox archive intended for Mozilla Add-ons is generated with:
+\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. The Chromium and Firefox archives are generated with:
 
 \begin{lstlisting}
-yarn package:firefox
+yarn package
 \end{lstlisting}
 
-The ZIP is written to \verb|artifacts|. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website interaction, and publication content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
+The files \verb|rs_rate-chromium.zip| and \verb|rs_rate-firefox.zip| are written to \verb|artifacts|. The commands \verb|yarn package:chromium| and \verb|yarn package:firefox| create the individual archives. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website interaction, and publication content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
 
 Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. The permission covers only the selected origin, while any configured application path remains part of the server address.
 
