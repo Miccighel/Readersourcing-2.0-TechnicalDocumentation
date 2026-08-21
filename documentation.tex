@@ -564,6 +564,8 @@ The \emph{ApplicationController} contains shared authorization hooks for both AP
 
 The \emph{PaperRatingReference} value object similarly isolates the creation and validation of references stored in annotated publications. It uses authenticated encryption with a dedicated purpose and binds each reference to one reader and one publication without persisting a login credential in the PDF.
 
+The \emph{PublicationDownloadReference} value object authorizes access to a prepared copy without exposing its private storage path. A signed reference is bound to one reader, publication, PDF variant, and file name, and expires after five minutes by default. This separate capability allows both browser interfaces to open a PDF in a new tab, where an \verb|Authorization| header cannot be added, without making the storage directory public.
+
 The \emph{RequestRateLimit} value object describes each request budget and provides opaque identities for the corresponding cache counters. Controllers apply these policies through the Rails rate limiting boundary, leaving credential verification, mail delivery, publication handling, and the Readersourcing domain objects unaware of throttling concerns.
 
 For REST clients, relying only on session data held by the server to identify the authenticated user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The workflow rendered by the server can still keep the same token in its Rails session.
@@ -582,7 +584,7 @@ In the save for later workflow, \rsserver places a dedicated paper rating refere
 
 The web interface and \rsrate do not download a publication merely because a reader enters a URL or opens the extension. They first report that the source is ready to prepare, and the real operation starts when the reader requests the prepared PDF. \rsserver then retrieves the source once under the configured address, redirect, timeout, and size policies. The declared content type is retained as an indication, while the file header and the PDF parser determine whether the received content is a usable PDF. Private and reserved network addresses remain refused unless a controlled deployment enables the documented override.
 
-The same preparation object is used for remote and uploaded sources. An upload provides an alternative when a publisher requires access through the reader's browser session or when the remote source is otherwise unavailable. The source is opened before \rspdf is invoked and a PDF that is malformed, encrypted, unsupported, or already contains a \verb|BaseUrl| rating reference is refused with a specific status. \rspdf writes into temporary storage. Before the generated file replaces any existing reader copy, \rsserver opens it again and verifies that it contains exactly one additional page and the expected rating URL. A failed process or final verification leaves the previous copy untouched. Both user interfaces translate the stable preparation statuses into an explicit title, explanation, retry action, and upload option where applicable.
+The same preparation object is used for remote and uploaded sources. An upload provides an alternative when a publisher requires access through the reader's browser session or when the remote source is otherwise unavailable. The source is opened before \rspdf is invoked and a PDF that is malformed, encrypted, unsupported, or already contains a \verb|BaseUrl| rating reference is refused with a specific status. \rspdf writes into temporary storage. Before the generated file replaces any existing reader copy, \rsserver opens it again and verifies that it contains exactly one additional page and the expected rating URL. A failed process or final verification leaves the previous copy untouched. Completed copies remain outside the public asset directory and are served only after a download reference has been verified. The response forbids shared caching and prevents the reference from being sent as a referrer. Both user interfaces translate the stable preparation statuses into an explicit title, explanation, retry action, and upload option where applicable.
 
 Password recovery uses a separate credential that can be used once. An HTTP \verb|GET| request only displays the recovery form; sending the request requires \verb|POST|. The request endpoint returns the same confirmation for registered and unregistered addresses. For a registered address, \rsserver generates a random token, stores only its SHA-256 digest and issue time, and sends a link built from the configured public origin. The link remains valid for four hours. It opens a form rendered by the server in which the reader chooses and confirms a new password; a successful reset clears the stored digest before a confirmation email is sent. Passwords are never sent by email.
 
@@ -673,7 +675,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated.
+Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
 
 \subsubsubsection{Requirements}
 
@@ -689,7 +691,7 @@ Clone the repository, copy \verb|.env.example| to \verb|.env| and replace its ex
 docker compose up --build
 \end{lstlisting}
 
-The \verb|database| service must pass its health check before the \verb|rs_server_webapp| service starts. The application entrypoint runs \verb|bin/rails db:create| and \verb|bin/rails db:migrate| automatically. Once startup completes, the web application is available at \url{http://localhost:3000}; \verb|0.0.0.0| is the container bind address, not the address users should enter in a browser.
+The \verb|database| service must pass its health check before the \verb|rs_server_setup| service runs \verb|bin/rails db:prepare|. The setup service must complete successfully before \verb|rs_server_webapp| starts; database migration is not performed by the application entrypoint. Once startup completes, the web application is available at \url{http://localhost:3000}; \verb|0.0.0.0| is the container bind address, not the address users should enter in a browser. The \verb|GET /up| endpoint can be used to verify that Rails boots successfully.
 
 Sample data remain optional:
 
@@ -749,7 +751,9 @@ Credentials and connection details specific to each deployment are supplied thro
 \midrule
 \verb|RAILS_MAX_THREADS| & Maximum Active Record connection pool size; defaults to 5. & all environments \\
 \midrule
-\verb|PUBLIC_BASE_URL| & Public HTTP or HTTPS origin used to generate password recovery links; required for recovery in production. & production \\
+\verb|PUBLIC_BASE_URL| & Public HTTP or HTTPS origin used for external links and allowed host validation; required in production. & production \\
+\midrule
+\makecell[l]{\texttt{ADDITIONAL\_ALLOWED\_}\texttt{HOSTS}} & Additional accepted request hosts, separated by commas. & production \\
 \midrule
 \path{CORS_ALLOWED_ORIGINS} & Origins allowed to call the API, separated by commas. An omitted value disables requests from other origins in production. & production \\
 \midrule
@@ -764,6 +768,10 @@ Credentials and connection details specific to each deployment are supplied thro
 \path{RS_PDF_PROCESS_TIMEOUT} & Maximum \rspdf execution time in seconds; defaults to 60. & development, production \\
 \midrule
 \makecell[l]{\texttt{RS\_PDF\_ALLOW\_}\\\texttt{PRIVATE\_NETWORKS}} & Set to \verb|true| only when publications must be fetched from a trusted private network. & development, production \\
+\midrule
+\verb|RS_PDF_STORAGE_ROOT| & Private directory used for prepared publications; defaults to \verb|storage/publications|. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_PDF\_DOWNLOAD\_URL\_}\\\texttt{TTL}} & Lifetime of a signed publication download URL, in seconds; defaults to 300. & development, production \\
 \midrule
 \makecell[l]{\texttt{RS\_AUTHENTICATION\_}\\\texttt{RATE\_LIMIT}} & Authentication attempts allowed for one IP address in three minutes; defaults to 10. & development, production \\
 \midrule
@@ -805,11 +813,13 @@ FORCE_SSL=true
 RAILS_LOG_TO_STDOUT=true
 \end{lstlisting}
 
-The value of \verb|PUBLIC_BASE_URL| is an origin: it contains the scheme, host, and optional port, but no path, query string, fragment, or credentials. In production, a missing value makes password recovery unavailable rather than deriving a link from an untrusted request host.
+The value of \verb|PUBLIC_BASE_URL| is an origin: it contains the scheme, host, and optional port, but no path, query string, fragment, or credentials. Production refuses to start when the value is missing or invalid. Its host is accepted by the Rails host authorization policy; further trusted hosts can be listed through \verb|ADDITIONAL_ALLOWED_HOSTS|. The public origin is used for password recovery and prepared publication links rather than deriving either value from an untrusted request host.
 
 \verb|CORS_ALLOWED_ORIGINS| contains exact origins separated by commas. Supplying \verb|*| deliberately permits requests from every origin and is inappropriate for an ordinary public deployment. \rsrate requests browser permission for the selected server origin and therefore does not depend on a generated extension origin being listed here. Set \verb|FORCE_SSL=true| only after HTTPS is available at the public origin.
 
 Publication downloads reject private and reserved network addresses by default. The \verb|RS_PDF_ALLOW_PRIVATE_NETWORKS| override is intended only for a controlled deployment in which trusted publications are deliberately served from such a network.
+
+Prepared publications are stored below \verb|RS_PDF_STORAGE_ROOT| and not below \verb|public|. The API retains its original publication path fields as logical compatibility metadata, while \verb|pdf_download_url| and \verb|pdf_download_url_link| contain signed URLs with the configured lifetime. Logging out does not revoke an issued download URL, which remains usable only until that short lifetime ends. Existing files under \verb|public/user| can be moved once with \verb|bin/rails publications:migrate_private_storage|; the task stops rather than combining an existing destination with the old tree.
 
 Rate limit counters use the configured Rails cache store. The supplied Puma configuration runs a single process and uses a store in memory. Deployments with multiple server processes or replicas must configure a shared Active Support cache store so that every instance contributes to the same request budgets.
 
