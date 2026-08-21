@@ -623,7 +623,7 @@ The classes responsible for the Readersourcing computations follow the \emph{Str
 
 \subsection{Deploy}
 
-\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment.
+\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.0| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
 
 Secrets and database settings specific to each environment are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
 
@@ -675,7 +675,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose builds \rsserver from the project source tree and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
+Docker Compose uses the public \verb|miccighel/rs_server:v2.0.0| image and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. When the source code has been edited, the same image can be built locally. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
 
 \subsubsubsection{Requirements}
 
@@ -688,10 +688,12 @@ Docker Compose builds \rsserver from the project source tree and starts it toget
 Clone the repository, copy \verb|.env.example| to \verb|.env| and replace its example values, ensure that the Docker Engine is running, and execute:
 
 \begin{lstlisting}
-docker compose up --build
+docker compose up
 \end{lstlisting}
 
-The \verb|database| service must pass its health check before the \verb|rs_server_setup| service runs \verb|bin/rails db:prepare|. The setup service must complete successfully before \verb|rs_server_webapp| starts; database migration is not performed by the application entrypoint. Once startup completes, the web application is available at \url{http://localhost:3000}; \verb|0.0.0.0| is the container bind address, not the address users should enter in a browser. The \verb|GET /up| endpoint can be used to verify that Rails boots successfully.
+The command downloads the published image when it is not already available. To build the image from the checked out source instead, execute \verb|docker compose up --build|.
+
+The \verb|database| service must pass its health check before the \verb|rs_server_setup| service runs \verb|bin/rails db:migrate|. The setup service must complete successfully before \verb|rs_server_webapp| starts; database migration is not performed by the application entrypoint and sample data are not created implicitly. Once startup completes, the web application is available at \url{http://localhost:3000}; \verb|0.0.0.0| is the container bind address, not the address users should enter in a browser. The \verb|GET /up| endpoint can be used to verify that Rails boots successfully.
 
 Sample data remain optional:
 
@@ -706,7 +708,8 @@ Use \verb|docker compose down| to stop the services. The named volumes are retai
 \begin{itemize}
 \item change to the main directory with \verb|cd|;
 \item copy \verb|.env.example| to \verb|.env| and populate it;
-\item \verb|docker compose up --build|;
+\item \verb|docker compose up|;
+\item \verb|docker compose up --build| when the source code has been edited;
 \item \verb|docker compose run --rm rs_server_webapp bin/rails db:seed| (optional);
 \item \verb|docker compose down| (to stop the services).
 \end{itemize}

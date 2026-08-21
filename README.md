@@ -33,6 +33,7 @@ The PDF committed for a release should be rebuilt from the same tagged source an
 - <a href="https://readersourcing.com">Readersourcing 2.0 (Web Interface)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0">Readersourcing 2.0 (Main Repository)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Server">RS_Server</a>
+- <a href="https://hub.docker.com/r/miccighel/rs_server">RS_Server (Docker Hub)</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_PDF">RS_PDF</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Rate">RS_Rate</a>
 - <a href="https://github.com/Miccighel/Readersourcing-2.0-RS_Py">RS_Py</a>
