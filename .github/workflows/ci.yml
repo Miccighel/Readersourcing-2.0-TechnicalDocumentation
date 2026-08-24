@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - codex/development
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install TeX dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes biber latexmk texlive-bibtex-extra texlive-fonts-recommended texlive-latex-extra texlive-science
+      - name: Build documentation
+        run: latexmk -pdf -interaction=nonstopmode -halt-on-error documentation.tex
