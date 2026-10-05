@@ -367,10 +367,12 @@ To support features such as storing annotated publications and authenticating us
 
 \begin{itemize}
 \item \textbf{Users}: represents the users of the system and stores their personal data. A user may have an optional \emph{ORCID} and a boolean indicating whether they wish to receive emails. Additional attributes store the tokens required for operations such as password reset.
-\item \textbf{Ratings}: represents the ratings provided by readers for publications. Each rating has a numerical score, a boolean indicating whether it is anonymous, and another boolean recording whether it was edited later. A reader can provide at most one rating for a given publication; this invariant is enforced both by the application model and by a unique database constraint.
+\item \textbf{Ratings}: represents the ratings provided by readers for publications. Each rating has an integer score from 0 to 100, including both endpoints, and an original score that retains the first submitted value when the rating is edited. Two booleans indicate whether the rating is anonymous and whether it was edited later. A reader can provide at most one rating for a given publication; this invariant is enforced both by the application model and by a unique database constraint.
 \item \textbf{Publications}: represents publications known to the server, including those saved for later but not yet rated. A publication may have a \emph{DOI}, descriptive metadata, and attributes used to manage the original and annotated PDF files.
 \end{itemize}
 These entities also contain attributes such as \emph{steadiness} and \emph{informativeness}, which store scores or parameters computed by the Readersourcing models.
+
+Both rating scores are required and must remain within the rating scale. The application validates the supplied scores, and the database enforces their presence and range. This applies to ratings submitted through the API or an annotated PDF and to edits of existing ratings. An invalid value leaves the stored domain scores unchanged and does not send a confirmation email; JSON requests return HTTP status \verb|422| with validation messages for the affected fields. Before installing the database constraints, the migration checks existing ratings and stops if their scores are missing or out of range, without correcting those records automatically.
 
 An auxiliary \textbf{AuthenticationToken} entity records each active login. It belongs to one user and stores the unique JWT identifier and its expiration time, but never the encoded JWT itself. Authentication tokens support the security boundary rather than the Readersourcing score domain.
 
