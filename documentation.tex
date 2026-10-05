@@ -625,6 +625,10 @@ Responses set \verb|X-Frame-Options| to \verb|DENY|, \verb|X-Content-Type-Option
 
 The classes responsible for the Readersourcing computations follow the \emph{Strategy} pattern: \emph{Readersourcing}, \emph{ReadersourcingStrategy}, \emph{RsmStrategy}, and \emph{TrmStrategy}. A rating invokes the RSM strategy first and the TRM strategy second. The pattern keeps model selection extensible while expressing the score computation order explicitly.
 
+The \emph{RatingSubmission} command object coordinates persistence without changing the computations implemented by these strategies. It saves a new rating and the RSM and TRM results in one database transaction. Rating submissions and edits acquire the same PostgreSQL advisory transaction lock: reader reputation is shared across publications, so locking only the selected publication would not protect every affected score. The reader and publication are read again after the lock is acquired. Each strategy requires its writes to succeed; a failed calculation rolls back the rating, any publication created for it, and all associated score changes. The lock coordinates rating operations across application processes and is released when their transaction ends. Editing a rating retains its original score and does not recompute either model.
+
+Confirmation mail is attempted for subscribed readers only after the new rating and its calculations have been committed. A mail delivery failure leaves the saved rating intact and does not change the successful API response. The paper rating interface reports that the rating was saved but its confirmation email could not be sent.
+
 \subsection{Deploy}
 
 \rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.0| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
