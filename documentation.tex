@@ -577,6 +577,10 @@ The \emph{PdfOperationDeadline} value object describes the time remaining for a 
 
 The \emph{RequestRateLimit} value object describes each request budget and provides opaque identities for the corresponding cache counters. Controllers apply these policies through the Rails rate limiting boundary, leaving credential verification, mail delivery, publication handling, and the Readersourcing domain objects unaware of throttling concerns.
 
+The \emph{RegistrationConfirmation} command object sends the email needed to activate a reader's account and reports delivery failure without changing the account or its confirmation token. Registration and the confirmation retry performed during authentication use the same object. Link generation and delivery failures are recorded without including email contents, credentials, or confirmation references in the log.
+
+Registration attempts are limited to five for one IP address in fifteen minutes and three for one normalized email address in thirty minutes by default. Rejected attempts return HTTP status \verb|429| with \verb|Retry-After|; displaying the registration form and following a confirmation link do not consume these budgets. Creating an account returns HTTP status \verb|201|. If the confirmation email cannot be sent, the account remains unconfirmed and the response includes \verb|status: "confirmation_pending"|. Both interfaces display the accompanying message on the login page, asking the reader to sign in with the same credentials later. Correct credentials for an unconfirmed account request another confirmation email without replacing an existing token. The response is HTTP status \verb|401| after sending the email, or \verb|503| with \verb|status: "confirmation_delivery_failed"| if delivery fails. Incorrect credentials do not send email or disclose that the account is awaiting confirmation. These attempts remain subject to the authentication request limit, and no authentication token is issued before confirmation. Confirmation links use \verb|PUBLIC_BASE_URL|; outside production, an omitted value uses the request origin.
+
 For REST clients, relying only on session data held by the server to identify the authenticated user is unsuitable because the RESTful interface is \emph{stateless}. Clients therefore attach an authentication \emph{token} to each protected request. The workflow rendered by the server can still keep the same token in its Rails session.
 
 Authentication establishes the identity of the reader making the request, while authorization at the resource level determines which records that reader may operate on. Profile updates, account deletion, and subscription changes are restricted to the current reader. A reader may inspect and edit only their own rating through the individual rating endpoints. Reader collections and individual reader responses expose the public academic profile---name, ORCID, and Readersourcing scores---without email or subscription preferences; the current reader obtains those private profile fields through the dedicated information endpoint.
@@ -802,6 +806,10 @@ Credentials and connection details specific to each deployment are supplied thro
 \makecell[l]{\texttt{RS\_PDF\_DOWNLOAD\_URL\_}\\\texttt{TTL}} & Lifetime of a signed publication download URL, in seconds; defaults to 300. & development, production \\
 \midrule
 \makecell[l]{\texttt{RS\_AUTHENTICATION\_}\\\texttt{RATE\_LIMIT}} & Authentication attempts allowed for one IP address in three minutes; defaults to 10. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_REGISTRATION\_IP\_}\\\texttt{RATE\_LIMIT}} & Registration attempts allowed for one IP address in fifteen minutes; defaults to 5. & development, production \\
+\midrule
+\makecell[l]{\texttt{RS\_REGISTRATION\_}\\\texttt{ACCOUNT\_RATE\_LIMIT}} & Registration attempts allowed for one normalized email address in thirty minutes; defaults to 3. & development, production \\
 \midrule
 \makecell[l]{\texttt{RS\_PASSWORD\_RECOVERY\_IP\_}\\\texttt{RATE\_LIMIT}} & Recovery requests allowed for one IP address in fifteen minutes; defaults to 5. & development, production \\
 \midrule
