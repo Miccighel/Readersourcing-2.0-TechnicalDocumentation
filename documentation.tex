@@ -646,7 +646,7 @@ Confirmation mail is attempted for subscribed readers only after the new rating 
 
 \subsection{Deploy}
 
-\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.0| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
+\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.1| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
 
 Secrets and database settings specific to each environment are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
 
@@ -698,7 +698,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose uses the public \verb|miccighel/rs_server:v2.0.0| image and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. When the source code has been edited, the same image can be built locally. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
+Docker Compose uses the public \verb|miccighel/rs_server:v2.0.1| image and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. When the source code has been edited, the same image can be built locally. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
 
 \subsubsubsection{Requirements}
 
@@ -1083,7 +1083,7 @@ yarn install --immutable
 yarn verify
 \end{lstlisting}
 
-\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. Firefox validation also scans the bundled runtime libraries. The validator reports warnings in several of those libraries, including dynamic HTML assignments and legacy \verb|Function| constructors in Dropzone. These warnings remain visible and require review before submission to Mozilla Add-ons. The Chromium and Firefox archives are generated with:
+\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. Firefox validation also scans the bundled runtime libraries. The validator reports 21 warnings concerning HTML assignments and legacy \verb|Function| constructors. The \rsrate repository documents each finding and its use in the current extension. Server error values are escaped within the existing layout, while confirmation messages, filenames, and upload errors are displayed as text. Tests cover these boundaries and the relevant library behavior. The warnings remain visible; distribution through Mozilla Add-ons still requires Mozilla's review and signing. The Chromium and Firefox archives are generated with:
 
 \begin{lstlisting}
 yarn package
