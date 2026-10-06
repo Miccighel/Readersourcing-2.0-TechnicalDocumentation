@@ -1083,13 +1083,17 @@ yarn install --immutable
 yarn verify
 \end{lstlisting}
 
-\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. The Chromium and Firefox archives are generated with:
+\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. Firefox validation also scans the bundled runtime libraries. The validator reports warnings in several of those libraries, including dynamic HTML assignments and legacy \verb|Function| constructors in Dropzone. These warnings remain visible and require review before submission to Mozilla Add-ons. The Chromium and Firefox archives are generated with:
 
 \begin{lstlisting}
 yarn package
 \end{lstlisting}
 
-The files \verb|rs_rate-chromium.zip| and \verb|rs_rate-firefox.zip| are written to \verb|artifacts|. The commands \verb|yarn package:chromium| and \verb|yarn package:firefox| create the individual archives. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website interaction, and publication content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
+The files \verb|rs_rate-chromium.zip| and \verb|rs_rate-firefox.zip| are written to \verb|artifacts|. Packaging includes the local runtime libraries and checks that every archived file matches the unpacked build, without including development dependencies. The CI workflow also creates and checks both archives. The commands \verb|yarn package:chromium| and \verb|yarn package:firefox| create the individual archives. The Firefox target requires Firefox 142 or later. Its manifest declares the account, browsing, website interaction, and publication content categories required by the Readersourcing workflow. The extension does not include an analytics channel.
+
+The command \verb|yarn audit:production| checks the direct and transitive dependencies used by the extension. The CI workflow runs this check and fails when the registry reports a known vulnerability. The command \verb|yarn audit| also includes the development tools. Both commands distinguish vulnerability advisories from package deprecation notices; the complete report, including those notices, is available with \verb|yarn npm audit --all --recursive|.
+
+As of October 6, 2026, the development dependency \verb|node-forge| has an unresolved RSA signature verification advisory with no patched release.\footnote{\url{https://github.com/advisories/GHSA-86w9-cpqp-85rv}} It is included by \verb|web-ext| through \verb|@devicefarmer/adbkit| for Firefox for Android. The documented build, validation, and packaging commands do not use Android connections, and this dependency is not copied into either extension package. The full audit reports the advisory and returns a failure; the advisory is not excluded. Bootstrap 4 remains in use for the extension views and plugins, although it is no longer supported. Deprecated releases of ESLint and \verb|whatwg-encoding| also remain in the development tools through Mozilla's validator and its HTML parser.
 
 Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. The permission covers only the selected origin, while any configured application path remains part of the server address.
 
