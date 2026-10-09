@@ -646,7 +646,7 @@ Confirmation mail is attempted for subscribed readers only after the new rating 
 
 \subsection{Deploy}
 
-\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.1| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
+\rsserver supports two setup paths: a manual installation, intended primarily for development, and a Docker Compose deployment, which provides a reproducible application and database environment. Docker Compose can use the published \verb|miccighel/rs_server:v2.0.2| image available on Docker Hub,\footnote{\url{https://hub.docker.com/r/miccighel/rs_server}} or build the application locally from the same source tree.
 
 Secrets and database settings specific to each environment are described in Section~\ref{env-vars}. A local \verb|.env| file must never be committed.
 
@@ -698,7 +698,7 @@ The active token registry is populated at login. A session carrying a JWT withou
 
 \subsubsection{Modality 2: Docker Compose}
 
-Docker Compose uses the public \verb|miccighel/rs_server:v2.0.1| image and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. When the source code has been edited, the same image can be built locally. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
+Docker Compose uses the public \verb|miccighel/rs_server:v2.0.2| image and starts it together with PostgreSQL 17. The application image includes Ruby 3.4.10, the Java 21 runtime required by \rspdf, the locked Ruby dependencies, and the precompiled browser assets. When the source code has been edited, the same image can be built locally. This is the recommended reproducible deployment for local integration and verification under conditions similar to production. Named volumes retain the database and the prepared publications when the containers are recreated. The application runs as an unprivileged user with a read only root file system; temporary directories and the private publication volume are its only writable locations.
 
 \subsubsubsection{Requirements}
 
