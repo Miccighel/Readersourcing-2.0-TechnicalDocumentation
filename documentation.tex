@@ -1065,13 +1065,13 @@ The original 2019 release of \rsrate remains available on the Google Chrome Web 
 
 The repository also produces a Firefox Manifest V3 package ready for local validation and submission to Mozilla Add-ons. It uses the following stable Gecko identifier:
 \begin{center}
-\small\path{rs-rate@readersourcing.org}
+\small\path{rs-rate@readersourcing.com}
 \end{center}
 For local testing, open \path{about:debugging}, choose \emph{This Firefox}, and load
 \begin{center}
 \small\path{dist/firefox/manifest.json}
 \end{center}
-using \emph{Load Temporary Add-on}. Distribution through Mozilla Add-ons requires validation and signing by Mozilla.
+using \emph{Load Temporary Add-on}. This identifier belongs to the original Mozilla Add-ons entry. Distribution through Mozilla Add-ons requires validation and signing by Mozilla. The \emph{unlisted} channel supports distribution outside the public catalog; installation of the returned signed package must be checked in a regular Firefox release with signature enforcement enabled.
 
 \subsection{Development and Packaging}
 
@@ -1093,9 +1093,17 @@ The files \verb|rs_rate-chromium.zip| and \verb|rs_rate-firefox.zip| are written
 
 The command \verb|yarn audit:production| checks the direct and transitive dependencies used by the extension. The CI workflow runs this check and fails when the registry reports a known vulnerability. The command \verb|yarn audit| also includes the development tools. Both commands distinguish vulnerability advisories from package deprecation notices; the complete report, including those notices, is available with \verb|yarn npm audit --all --recursive|.
 
-As of October 6, 2026, the development dependency \verb|node-forge| has an unresolved RSA signature verification advisory with no patched release.\footnote{\url{https://github.com/advisories/GHSA-86w9-cpqp-85rv}} It is included by \verb|web-ext| through \verb|@devicefarmer/adbkit| for Firefox for Android. The documented build, validation, and packaging commands do not use Android connections, and this dependency is not copied into either extension package. The full audit reports the advisory and returns a failure; the advisory is not excluded. Bootstrap 4 remains in use for the extension views and plugins, although it is no longer supported. Deprecated releases of ESLint and \verb|whatwg-encoding| also remain in the development tools through Mozilla's validator and its HTML parser.
+As of October 9, 2026, the development dependency \verb|node-forge| has an unresolved RSA signature verification advisory with no patched release.\footnote{\url{https://github.com/advisories/GHSA-86w9-cpqp-85rv}} It is included by \verb|web-ext| through \verb|@devicefarmer/adbkit| for Firefox for Android. The documented build, validation, and packaging commands do not use Android connections, and this dependency is not copied into either extension package.
 
-Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. The permission covers only the selected origin, while any configured application path remains part of the server address.
+The development dependency \verb|shell-quote| 1.10.0 also has a critical command injection advisory, corrected in version 1.11.0.\footnote{\url{https://github.com/advisories/GHSA-pqg4-j6r4-53mv}} It is included by \verb|web-ext| through \verb|fx-runner| 1.6.0, which requires version 1.10.0 exactly. This dependency is not copied into either extension package. The project awaits an update to the parent package without overriding its dependency requirement. The full audit reports both advisories and returns a failure; neither is excluded. The production dependency audit passed on the same date.
+
+Bootstrap 4 remains in use for the extension views and plugins, although it is no longer supported. Deprecated releases of ESLint and \verb|whatwg-encoding| also remain in the development tools through Mozilla's validator and its HTML parser.
+
+Development builds initially target \url{http://localhost:3000}. Users can change the \rsserver host in the extension options, and the same configured host is used for normal API requests and PDF extraction. When the value is saved, the browser asks the reader to grant access to that HTTP or HTTPS origin. Chromium uses the selected origin. Firefox grants access to the selected hostname and protocol on all ports because its host permission patterns do not support port numbers. Requests still use the configured server address, including its port and any application path.
+
+In Firefox, the authentication token is kept in the extension's session storage. It is shared by the extension pages and popup, is not synchronized, and is cleared when the browser closes or the extension is disabled. Logout removes the local token after \rsserver revokes the credential. API requests in Firefox omit the browser's web session cookies and supply the extension token explicitly.
+
+In Firefox, \emph{Use a local PDF} and \emph{Upload a prepared PDF} open the existing upload forms in a normal extension tab. This avoids the Firefox panel limitation affecting file selection.\footnote{\url{https://bugzilla.mozilla.org/show_bug.cgi?id=1378527}} For an original PDF, the tab displays and retains the publisher's address so the upload belongs to that publication. The address is held in session storage and removed when the upload tab closes. Extraction uses the uploaded PDF's annotation and does not require a publisher address. Both operations are also available through the \rsserver web interface.
 
 \subsection{Usage}
 
