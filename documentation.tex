@@ -1058,20 +1058,24 @@ The JavaScript component also uses jQuery to simplify DOM selection and manipula
 
 \subsection{Installation}
 
-The original 2019 release of \rsrate remains available on the Google Chrome Web Store. The current development source produces the Manifest V3 packages described in the following section. To install the original release with a browser based on Chromium, use the store page:
+The original 2019 release of \rsrate was distributed through the Google Chrome Web Store entry below. Updates retain that extension identity. Version 2.0.1 uses Manifest V3 and was submitted to Google with automatic publication disabled. On October 12, 2026, the developer dashboard confirmed that the revised submission was awaiting review; this is not an approval or a publicly available update. The Chromium package also supports Microsoft Edge, without requiring a separate Microsoft store submission.
 \begin{itemize}
 \item \textbf{Google Chrome and Microsoft Edge}: \url{https://chromewebstore.google.com/detail/readersourcing-20-rsrate/hlkdlngpijhdkbdlhmgeemffaoacjagg}
 \end{itemize}
 
-The repository also produces a Firefox Manifest V3 package ready for local validation and submission to Mozilla Add-ons. It uses the following stable Gecko identifier:
+The repository also produces a Firefox Manifest V3 package. Mozilla signed version 2.0.1 on October 11, 2026 through the existing entry's \emph{unlisted} channel for Firefox desktop. This provides a signed package for distribution outside the public catalog, not a new public listing. It uses the following stable Gecko identifier:
 \begin{center}
 \small\path{rs-rate@readersourcing.com}
 \end{center}
-For local testing, open \path{about:debugging}, choose \emph{This Firefox}, and load
+To install a provided signed package, open the Firefox Add-ons Manager, choose \emph{Install Add-on From File}, and select the XPI. The retained version 2.0.1 copy is named \verb|rs_rate-firefox-signed-2.0.1.xpi|. Its provenance, corresponding source, and archive hashes are recorded in the \rsrate repository's distribution instructions.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Rate/blob/codex/development/docs/firefox.md}} Installation and functional checks completed in a separate regular Firefox 157.0.1 profile with signature enforcement enabled and private window access disabled. Login, reopening the popup, original PDF upload, annotated extraction, restart, and logout were checked against a local server with a synthetic reader. These results do not validate a public deployment.
+
+For development testing, open \path{about:debugging}, choose \emph{This Firefox}, and load
 \begin{center}
 \small\path{dist/firefox/manifest.json}
 \end{center}
-using \emph{Load Temporary Add-on}. This identifier belongs to the original Mozilla Add-ons entry. Distribution through Mozilla Add-ons requires validation and signing by Mozilla. The \emph{unlisted} channel supports distribution outside the public catalog; installation of the returned signed package must be checked in a regular Firefox release with signature enforcement enabled.
+using \emph{Load Temporary Add-on}. Temporary loading does not verify a signed installation. New versions require their own validation, Mozilla signing, and installation checks before distribution.
+
+Both browser targets require a compatible \rsserver and a reader account; the extension does not include a server or provide a publicly deployed service. The extension's information handling is described in its public privacy policy.\footnote{\url{https://github.com/Miccighel/Readersourcing-2.0-RS_Rate/blob/d6a0c56b7795229fcd5179980b94e8486fb87109/PRIVACY.md}} The selected server operator's service policy applies separately.
 
 \subsection{Development and Packaging}
 
@@ -1083,7 +1087,7 @@ yarn install --immutable
 yarn verify
 \end{lstlisting}
 
-\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. Firefox validation also scans the bundled runtime libraries. The validator reports 21 warnings concerning HTML assignments and legacy \verb|Function| constructors. The \rsrate repository documents each finding and its use in the current extension. Server error values are escaped within the existing layout, while confirmation messages, filenames, and upload errors are displayed as text. Tests cover these boundaries and the relevant library behavior. The warnings remain visible; distribution through Mozilla Add-ons still requires Mozilla's review and signing. The Chromium and Firefox archives are generated with:
+\verb|yarn verify| builds both targets, checks that all runtime assets are local, validates the Firefox build with Mozilla's \verb|web-ext|, and runs the client contract tests. Version 2.0.1 passed 127 tests and both build checks on October 11, 2026. Firefox validation also scans the bundled runtime libraries. The validator reported no errors or notices and 21 warnings concerning HTML assignments and legacy \verb|Function| constructors. The \rsrate repository documents each finding and its use in the current extension. Server error values are escaped within the existing layout, while confirmation messages, filenames, and upload errors are displayed as text. Tests cover these boundaries and the relevant library behavior. The warnings remain visible; new Firefox versions require their own Mozilla review and signing. The Chromium and Firefox archives are generated with:
 
 \begin{lstlisting}
 yarn package
@@ -1111,7 +1115,7 @@ Figure~\ref{fig:ux-1} shows a Google Chrome window with the extension active for
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{figures/ux-1.png}
+\includegraphics[width=\textwidth]{figures/ux-1.PNG}
 \caption{\rsrate characterized as an extension having a popup action.}
 \label{fig:ux-1}
 \end{figure}
@@ -1134,7 +1138,7 @@ If a reader has yet to register for Readersourcing 2.0, they can navigate from t
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.7]{figures/signup.PNG}
+\includegraphics[scale=0.7]{figures/signup.png}
 \caption{The user registration page of \rsrate.}
 \label{fig:signup}
 \end{figure}
@@ -1168,7 +1172,7 @@ Following the reference takes the reader to a dedicated page in \rsserver. This 
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.7]{figures/browser.png}
+\includegraphics[scale=0.7]{figures/browser.PNG}
 \caption{The server interface to rate a publication.}
 \label{fig:browser}
 \end{figure}
